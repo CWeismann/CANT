@@ -1,34 +1,21 @@
-import java.awt.BorderLayout;
+import javax.net.ssl.*;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
+import java.io.*;
+import java.security.*;
 import java.security.cert.CertificateException;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManagerFactory;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CantClient extends JFrame implements ActionListener {
     private JTextArea chatArea;
     private JTextField inputField;
     private JButton sendButton;
     private PrintWriter out;
+    private JComboBox<String> clientDropdown;
+    private List<String> availableClients;
 
     public CantClient() {
         setTitle("TLS Chat Client");
@@ -47,6 +34,9 @@ public class CantClient extends JFrame implements ActionListener {
         inputField = new JTextField();
         inputField.addActionListener(this);
         inputPanel.add(inputField, BorderLayout.CENTER);
+
+        clientDropdown = new JComboBox<>();
+        inputPanel.add(clientDropdown, BorderLayout.WEST);
 
         sendButton = new JButton("Send");
         sendButton.addActionListener(this);
@@ -83,7 +73,11 @@ public class CantClient extends JFrame implements ActionListener {
                     BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     String message;
                     while ((message = in.readLine()) != null) {
-                        appendToChatArea("Server: " + message);
+                        if (message.startsWith("CLIENT_LIST:")) {
+                            updateClientDropdown(message.substring("CLIENT_LIST:".length()).split(","));
+                        } else {
+                            appendToChatArea(message);
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -98,11 +92,24 @@ public class CantClient extends JFrame implements ActionListener {
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == sendButton || e.getSource() == inputField) {
-            String message = inputField.getText();
-            if (!message.isEmpty()) {
-                appendToChatArea("You: " + message);
-                out.println(message);
-                inputField.setText("");
+            String recipient = (String) clientDropdown.getSelectedItem();
+            if (recipient != null) {
+                String message = inputField.getText();
+                if (!message.isEmpty()) {
+                    out.println(recipient + ":" + message); // Send message with recipient's ID
+                    inputField.setText("");
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "No recipient selected.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    public void updateClientDropdown(String[] clients) {
+        clientDropdown.removeAllItems();
+        for (String client : clients) {
+            if (!client.equals(getClientId())) { // Exclude self from the list
+                clientDropdown.addItem(client);
             }
         }
     }
@@ -118,5 +125,9 @@ public class CantClient extends JFrame implements ActionListener {
         SwingUtilities.invokeLater(() -> {
             new CantClient();
         });
+    }
+
+    private String getClientId() {
+        return "Client" + System.currentTimeMillis(); // Temporary client ID generation
     }
 }

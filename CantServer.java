@@ -16,6 +16,7 @@ import java.sql.PreparedStatement;
 
 public class CantServer extends JFrame {
     private JTextArea chatArea;
+    private JComboBox<String> clientDropdown;
     private List<ClientHandler> clients;
     private CantDBManager databaseManager;
 
@@ -68,6 +69,9 @@ public class CantServer extends JFrame {
                 ClientHandler clientHandler = new ClientHandler(clientSocket);
                 clients.add(clientHandler);
                 new Thread(clientHandler).start();
+
+                // Update client list for all clients
+                broadcastClientList();
             }
 
             serverSocket.close();
@@ -86,9 +90,14 @@ public class CantServer extends JFrame {
         });
     }
 
-    private void broadcastMessage(String message) {
+    private void broadcastClientList() {
+        StringBuilder clientListBuilder = new StringBuilder();
         for (ClientHandler client : clients) {
-            client.sendMessage(message);
+            clientListBuilder.append(client.getClientId()).append(",");
+        }
+        String clientList = clientListBuilder.toString();
+        for (ClientHandler client : clients) {
+            client.sendMessage("CLIENT_LIST:" + clientList);
         }
     }
 
@@ -96,12 +105,14 @@ public class CantServer extends JFrame {
         private final SSLSocket clientSocket;
         private PrintWriter out;
         private BufferedReader in;
+        private String clientId;
 
         public ClientHandler(SSLSocket clientSocket) {
             this.clientSocket = clientSocket;
             try {
                 out = new PrintWriter(clientSocket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                clientId = "Client" + System.currentTimeMillis(); // Assign unique client ID
             } catch (IOException e) {
                 e.printStackTrace();
                 try {
@@ -112,13 +123,27 @@ public class CantServer extends JFrame {
             }
         }
 
+        public String getClientId() {
+            return clientId;
+        }
+
         @Override
         public void run() {
             try {
                 String message;
                 while ((message = in.readLine()) != null) {
-                    appendToChatArea("Client: " + message);
-                    broadcastMessage(message); // Broadcast the received message to all clients
+                    String[] parts = message.split(":", 2); // Split message into recipient and content
+                    if (parts.length == 2) {
+                        String recipient = parts[0];
+                        String content = parts[1];
+                        // Send message to the intended recipient
+                        for (ClientHandler client : clients) {
+                            if (client.getClientId().equals(recipient)) {
+                                client.sendMessage("Client " + clientId + ": " + content);
+                                break;
+                            }
+                        }
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -127,6 +152,8 @@ public class CantServer extends JFrame {
                     in.close();
                     out.close();
                     clientSocket.close();
+                    clients.remove(this); // Remove client from the list upon disconnection
+                    broadcastClientList(); // Broadcast updated client list
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
