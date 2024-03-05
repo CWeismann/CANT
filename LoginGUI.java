@@ -8,7 +8,9 @@ public class LoginGUI extends JFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JLabel messageLabel;
-    private Map<String, String> registeredUsers;
+    private static HashMap<String, String> registeredUsers;
+
+    private static Boolean success = false; 
 
     public LoginGUI() {
         // Initialize the dictionary
@@ -56,7 +58,7 @@ public class LoginGUI extends JFrame {
                 // Check if the username exists in the dictionary and if the password matches
                 if (registeredUsers.containsKey(username) && registeredUsers.get(username).equals(password)) {
                     messageLabel.setText("Login Successful!");
-
+                    success = true; 
                     // dispose(); // Close the login page
                 } else {
                     messageLabel.setText("Invalid username or password!");
@@ -121,7 +123,13 @@ public class LoginGUI extends JFrame {
             setVisible(true);
         }
     }
+    public static HashMap<String, String> getUsers(){ 
+        return registeredUsers; 
+    }
 
+    public static Boolean getSuccess(){ 
+        return success;
+    }
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
