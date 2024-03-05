@@ -63,7 +63,7 @@ class CantDBManager {
             Connection messages_conn = DriverManager.getConnection("jdbc:sqlite:messages.db");
             Statement messages_statement = messages_conn.createStatement();
         ){
-            messages_statement.executeUpdate("create table messages (id integer, sender string, receiver string, timestamp string, msg String, visible integer)");
+            messages_statement.executeUpdate("create table messages (id integer, sender string, recipient string, timestamp string, msg String, visible integer)");
             messages_conn.close();
         } catch (SQLException e){
             e.printStackTrace(System.err);
@@ -71,41 +71,41 @@ class CantDBManager {
 
     }
 
-    private class LoginDBEntry {
-        public int id;
-        public String username;
-        public String password;
-        public int salt;
-        public String timestamp;// = LocalDateTime.now();
-        public int valid;
+    // private class LoginDBEntry {
+    //     public int id;
+    //     public String username;
+    //     public String password;
+    //     public int salt;
+    //     public String timestamp;// = LocalDateTime.now();
+    //     public int valid;
 
-        public LoginDBEntry(String username, String password, int salt,int valid){
-            this.id = numLogins;
-            this.username = username;
-            this.password = password;
-            this.salt = salt;
-            this.timestamp = LocalDateTime.now().toString();
-            this.valid = valid;
-        }
-    }
+    //     public LoginDBEntry(String username, String password, int salt,int valid){
+    //         this.id = numLogins;
+    //         this.username = username;
+    //         this.password = password;
+    //         this.salt = salt;
+    //         this.timestamp = LocalDateTime.now().toString();
+    //         this.valid = valid;
+    //     }
+    // }
 
-    private class MessageDBEntry{
-        public int id;
-        public String sender;
-        public String receiver;
-        public String timestamp;
-        public String message; // Encrypted Message
-        public int visible;
+    // private class MessageDBEntry{
+    //     public int id;
+    //     public String sender;
+    //     public String recipient;
+    //     public String timestamp;
+    //     public String message; // Encrypted Message
+    //     public int visible;
 
-        public MessageDBEntry(String sender, String receiver, String message, int visible){
-            this.id = numMessages;
-            this.sender = sender;
-            this.receiver = receiver;
-            this.message = message;
-            this.timestamp = LocalDateTime.now().toString();
-            this.visible = visible;
-        }
-    }
+    //     public MessageDBEntry(String sender, String recipient, String message, int visible){
+    //         this.id = numMessages;
+    //         this.sender = sender;
+    //         this.recipient = recipient;
+    //         this.message = message;
+    //         this.timestamp = LocalDateTime.now().toString();
+    //         this.visible = visible;
+    //     }
+    // }
 
     public void addLoginCredentials(String username, String password, int salt){
         // LoginDBEntry entry = new loginEntry(username, password, salt, true); // New accts always valid
@@ -133,8 +133,8 @@ class CantDBManager {
             System.out.println("Failed to insert data: " + e.getMessage());
         }
     }
-    public void addToMessageDB(String sender, String receiver, String msg){
-        String sql = "INSERT INTO messages (id, sender, receiver, timestamp, msg, valid) VALUES (?,?,?,?,?,?)";
+    public void addToMessageDB(String sender, String recipient, String msg){
+        String sql = "INSERT INTO messages (id, sender, recipient, timestamp, msg, visible) VALUES (?,?,?,?,?,?)";
         try  (
             // create a database connection
             Connection connection = DriverManager.getConnection("jdbc:sqlite:messages.db");
@@ -143,7 +143,7 @@ class CantDBManager {
             String timestamp = LocalDateTime.now().toString();
             ps.setInt(1, numMessages);
             ps.setString(2, sender);
-            ps.setString(3, receiver);
+            ps.setString(3, recipient);
             ps.setString(4, timestamp);
             ps.setString(5, msg);
             ps.setInt(6,1);

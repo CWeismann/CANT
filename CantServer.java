@@ -136,6 +136,9 @@ public class CantServer extends JFrame {
                     if (parts.length == 2) {
                         String recipient = parts[0];
                         String content = parts[1];
+                        String sender = this.getClientId();
+                        // Log the message to the database
+                        databaseManager.addToMessageDB(sender,recipient, content);
                         // Send message to the intended recipient
                         for (ClientHandler client : clients) {
                             if (client.getClientId().equals(recipient)) {
