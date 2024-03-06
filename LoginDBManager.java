@@ -80,9 +80,9 @@ class LoginDBManager{
         ) {
 
             // Execute update to the db
-            System.out.println("tring to execute statement");
+            System.out.println("trying to execute statement");
             ResultSet loginData = stmt.executeQuery(sql);
-            System.out.println("eccecuted statement");
+            System.out.println("executed statement");
             if (loginData.next()){
                 // String db_username = loginData.getString("username");
                 String db_password = loginData.getString("password");
