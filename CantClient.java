@@ -16,6 +16,9 @@ public class CantClient extends JFrame implements ActionListener {
     private PrintWriter out;
     private JComboBox<String> clientDropdown;
     private List<String> availableClients;
+    private LoginGUI loginScreen;
+    private String ClientName; 
+
 
     public CantClient() {
         setTitle("TLS Chat Client");
@@ -45,14 +48,19 @@ public class CantClient extends JFrame implements ActionListener {
         panel.add(inputPanel, BorderLayout.SOUTH);
 
         add(panel);
-
+        
         setVisible(true);
-
+        loginScreen = new LoginGUI();
+        // if (loginScreen.getSuccess()){ 
         startClient();
+            // ClientName = loginScreen.getUser();
+        // }
+        
     }
 
     private void startClient() {
         try {
+
             KeyStore trustStore = KeyStore.getInstance("JKS");
             trustStore.load(new FileInputStream("client.truststore"), "AlamoStaffedDerivative".toCharArray());
 
@@ -108,9 +116,12 @@ public class CantClient extends JFrame implements ActionListener {
     public void updateClientDropdown(String[] clients) {
         clientDropdown.removeAllItems();
         for (String client : clients) {
+            // if (!client.equals(getClientId())) { // Exclude self from the list
+            //     clientDropdown.addItem(client);
+            // }
             if (!client.equals(getClientId())) { // Exclude self from the list
                 clientDropdown.addItem(client);
-            }
+             }
         }
     }
 
@@ -129,5 +140,8 @@ public class CantClient extends JFrame implements ActionListener {
 
     private String getClientId() {
         return "Client" + System.currentTimeMillis(); // Temporary client ID generation
+    }
+    private String getClientName(){
+        return ClientName;
     }
 }

@@ -2,22 +2,19 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.HashMap;
-import java.util.Map;
+import javax.swing.Timer;
+
 
 public class LoginGUI extends JFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JLabel messageLabel;
-    private static HashMap<String, String> registeredUsers;
     private LoginDBManager databaseManager;
     private static Boolean success = false; 
+    String username;
+    String password;
 
     public LoginGUI() {
-        // Initialize the dictionary
-        // registeredUsers = new HashMap<>();
-        // Add some dummy users (you can replace these with your actual users)
-        // registeredUsers.put("user1", "password1");
-        // registeredUsers.put("user2", "password2");
 
         setTitle("Login Page");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -54,14 +51,20 @@ public class LoginGUI extends JFrame {
 
         loginButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String username = usernameField.getText();
-                String password = new String(passwordField.getPassword());
+                username = usernameField.getText();
+                password = new String(passwordField.getPassword());
 
                 // Check if the username exists in the dictionary and if the password matches
                 //registeredUsers.containsKey(username) && registeredUsers.get(username).equals(password)
                 if (databaseManager.checkCredentials(username, password)) {
                     messageLabel.setText("Login Successful!");
                     success = true; 
+                    try {
+                        Thread.sleep(1000); // Sleep for 1 second
+                    } catch (InterruptedException ex) {
+                        ex.printStackTrace();
+                    }
+                    dispose();
                     // dispose(); // Close the login page
                     // open chat? 
                 } else {
@@ -127,11 +130,11 @@ public class LoginGUI extends JFrame {
             setVisible(true);
         }
     }
-    public static HashMap<String, String> getUsers(){ 
-        return registeredUsers; 
+    public String getUser(){ 
+        return username; 
     }
 
-    public static Boolean getSuccess(){ 
+    public Boolean getSuccess(){ 
         return success;
     }
     // Delete this

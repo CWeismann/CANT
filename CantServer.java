@@ -42,7 +42,7 @@ public class CantServer extends JFrame {
         clients = new ArrayList<>();
 
         databaseManager = new MessageDBManager();
-        loginScreen = new LoginGUI();
+        // loginScreen = new LoginGUI();
 
         startServer();
     }
