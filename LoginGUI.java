@@ -9,15 +9,15 @@ public class LoginGUI extends JFrame {
     private JPasswordField passwordField;
     private JLabel messageLabel;
     private static HashMap<String, String> registeredUsers;
-
+    private LoginDBManager databaseManager;
     private static Boolean success = false; 
 
     public LoginGUI() {
         // Initialize the dictionary
-        registeredUsers = new HashMap<>();
+        // registeredUsers = new HashMap<>();
         // Add some dummy users (you can replace these with your actual users)
-        registeredUsers.put("user1", "password1");
-        registeredUsers.put("user2", "password2");
+        // registeredUsers.put("user1", "password1");
+        // registeredUsers.put("user2", "password2");
 
         setTitle("Login Page");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -50,16 +50,20 @@ public class LoginGUI extends JFrame {
         messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         panel.add(messageLabel, BorderLayout.SOUTH);
 
+        databaseManager = new LoginDBManager();
+
         loginButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String username = usernameField.getText();
                 String password = new String(passwordField.getPassword());
 
                 // Check if the username exists in the dictionary and if the password matches
-                if (registeredUsers.containsKey(username) && registeredUsers.get(username).equals(password)) {
+                //registeredUsers.containsKey(username) && registeredUsers.get(username).equals(password)
+                if (databaseManager.checkCredentials(username, password)) {
                     messageLabel.setText("Login Successful!");
                     success = true; 
                     // dispose(); // Close the login page
+                    // open chat? 
                 } else {
                     messageLabel.setText("Invalid username or password!");
                 }
@@ -103,7 +107,7 @@ public class LoginGUI extends JFrame {
                     String password = new String(passwordField.getPassword());
 
                     // Here you can add code to register the new user
-                    registeredUsers.put(username, password);
+                    databaseManager.addLoginCredentials(username, password, 70); // default salt is 70
                     // For now, let's just print them to console
                     System.out.println("New Username: " + username);
                     System.out.println("New Password: " + password);
@@ -130,6 +134,7 @@ public class LoginGUI extends JFrame {
     public static Boolean getSuccess(){ 
         return success;
     }
+    // Delete this
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
