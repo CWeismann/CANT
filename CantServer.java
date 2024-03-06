@@ -7,10 +7,18 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.PreparedStatement;
+
 public class CantServer extends JFrame {
     private JTextArea chatArea;
     private JComboBox<String> clientDropdown;
     private List<ClientHandler> clients;
+    private MessageDBManager databaseManager;
 
     private volatile boolean running = true;
 
@@ -31,6 +39,10 @@ public class CantServer extends JFrame {
         setVisible(true);
 
         clients = new ArrayList<>();
+
+        databaseManager = new MessageDBManager();
+        loginScreen = new LoginGUI();
+
         startServer();
     }
 
@@ -125,6 +137,9 @@ public class CantServer extends JFrame {
                     if (parts.length == 2) {
                         String recipient = parts[0];
                         String content = parts[1];
+                        String sender = this.getClientId();
+                        // Log the message to the database
+                        databaseManager.addToMessageDB(sender,recipient, content);
                         // Send message to the intended recipient
                         for (ClientHandler client : clients) {
                             if (client.getClientId().equals(recipient)) {
