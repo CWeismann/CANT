@@ -1,5 +1,7 @@
 # CANT
 
+Runs on Mac, and should run on other UNIX systems.
+
 cant (noun):
 1. An argot, the jargon of a particular class or subgroup.
 2. A secure messaging app.
