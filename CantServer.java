@@ -18,7 +18,7 @@ public class CantServer extends JFrame {
     private JTextArea chatArea;
     private JComboBox<String> clientDropdown;
     private List<ClientHandler> clients;
-    private CantDBManager databaseManager;
+    private MessageDBManager databaseManager;
 
     private volatile boolean running = true;
 
@@ -40,7 +40,8 @@ public class CantServer extends JFrame {
 
         clients = new ArrayList<>();
 
-        databaseManager = new CantDBManager();
+        databaseManager = new MessageDBManager();
+        loginScreen = new LoginGUI();
 
         startServer();
     }
