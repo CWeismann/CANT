@@ -19,6 +19,7 @@ public class CantServer extends JFrame {
     private JComboBox<String> clientDropdown;
     private List<ClientHandler> clients;
     private MessageDBManager databaseManager;
+    private LoginGUI loginScreen;
 
     private volatile boolean running = true;
 
