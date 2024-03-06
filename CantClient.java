@@ -16,7 +16,7 @@ public class CantClient extends JFrame implements ActionListener {
     private PrintWriter out;
     private JComboBox<String> clientDropdown;
     private List<String> availableClients;
-    private LoginGUI loginScreen;
+    private static LoginGUI loginScreen;
     private String ClientName; 
 
 
@@ -50,11 +50,10 @@ public class CantClient extends JFrame implements ActionListener {
         add(panel);
         
         setVisible(true);
-        loginScreen = new LoginGUI();
-        // if (loginScreen.getSuccess()){ 
+        // loginScreen = new LoginGUI();
         startClient();
-            // ClientName = loginScreen.getUser();
-        // }
+        // ClientName = loginScreen.getUser();
+        
         
     }
 
@@ -134,12 +133,15 @@ public class CantClient extends JFrame implements ActionListener {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            new CantClient();
+                LoginGUI loginScreen = new LoginGUI();
+                // new CantClient();
+            
         });
     }
 
     private String getClientId() {
         return "Client" + System.currentTimeMillis(); // Temporary client ID generation
+        // return ClientName;
     }
     private String getClientName(){
         return ClientName;

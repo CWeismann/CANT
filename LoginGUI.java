@@ -64,14 +64,21 @@ public class LoginGUI extends JFrame {
                     } catch (InterruptedException ex) {
                         ex.printStackTrace();
                     }
-                    dispose();
-                    // dispose(); // Close the login page
+
+                    SwingUtilities.invokeLater(() -> {
+                        new CantClient(); // Pass LoginGUI instance to CantClient constructor
+                    });
+                    // /setVisible(false);
+                    dispose(); // Close the login page
                     // open chat? 
                 } else {
                     messageLabel.setText("Invalid username or password!");
                 }
             }
+
+            
         });
+        
 
         registerButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -83,6 +90,7 @@ public class LoginGUI extends JFrame {
         add(panel);
         setLocationRelativeTo(null); // Center the window
         setVisible(true);
+        // return success;
     }
 
     // Inner class for registration dialog
@@ -142,7 +150,7 @@ public class LoginGUI extends JFrame {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 new LoginGUI();
-            }
+        }
         });
     }
 }
