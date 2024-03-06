@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.net.ConnectException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
@@ -93,6 +94,7 @@ public class CantClient extends JFrame implements ActionListener {
 
         } catch (IOException | KeyStoreException | NoSuchAlgorithmException |
                 CertificateException | KeyManagementException e) {
+            System.out.println("Error with Server Connections!");
             e.printStackTrace();
         }
     }

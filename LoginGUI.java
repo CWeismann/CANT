@@ -18,13 +18,14 @@ public class LoginGUI extends JFrame {
 
         setTitle("Login Page");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(300, 200);
+        setSize(350, 200);
+        setResizable(false);
+        setLocationRelativeTo(null); // Center the window
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new GridLayout(3, 2));
+        JPanel inputPanel = new JPanel(new GridLayout(3, 1, 5, 5));
 
         JLabel usernameLabel = new JLabel("Username:");
         usernameField = new JTextField();
@@ -38,14 +39,17 @@ public class LoginGUI extends JFrame {
         inputPanel.add(usernameField);
         inputPanel.add(passwordLabel);
         inputPanel.add(passwordField);
-        inputPanel.add(loginButton);
-        inputPanel.add(registerButton);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.add(loginButton);
+        buttonPanel.add(registerButton);
 
         panel.add(inputPanel, BorderLayout.CENTER);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
 
         messageLabel = new JLabel("");
         messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        panel.add(messageLabel, BorderLayout.SOUTH);
+        panel.add(messageLabel, BorderLayout.NORTH);
 
         databaseManager = new LoginDBManager();
 
@@ -55,7 +59,6 @@ public class LoginGUI extends JFrame {
                 password = new String(passwordField.getPassword());
 
                 // Check if the username exists in the dictionary and if the password matches
-                //registeredUsers.containsKey(username) && registeredUsers.get(username).equals(password)
                 if (databaseManager.checkCredentials(username, password)) {
                     messageLabel.setText("Login Successful!");
                     success = true; 
@@ -66,7 +69,7 @@ public class LoginGUI extends JFrame {
                     }
 
                     SwingUtilities.invokeLater(() -> {
-                        new CantClient(); // Pass LoginGUI instance to CantClient constructor
+                        new CantClient(); 
                     });
                     // /setVisible(false);
                     dispose(); // Close the login page
@@ -103,8 +106,8 @@ public class LoginGUI extends JFrame {
             setSize(300, 150);
             setLocationRelativeTo(parent);
 
-            JPanel panel = new JPanel();
-            panel.setLayout(new GridLayout(3, 1));
+            JPanel panel = new JPanel(new GridLayout(3, 1, 5, 5));
+            panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
             JLabel usernameLabel = new JLabel("Username:");
             usernameField = new JTextField();
