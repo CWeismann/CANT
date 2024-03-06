@@ -1,85 +1,140 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.HashMap;
+import java.util.Map;
 
-public class LoginGUI extends JFrame implements ActionListener {
+public class LoginGUI extends JFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
-    private JButton loginButton;
+    private JLabel messageLabel;
+    private static HashMap<String, String> registeredUsers;
 
-    private String password;
-    private String username;
-    
-    private Boolean loginSuccess = false;
+    private static Boolean success = false; 
 
     public LoginGUI() {
-        setTitle("Messaging App Login");
+        // Initialize the dictionary
+        registeredUsers = new HashMap<>();
+        // Add some dummy users (you can replace these with your actual users)
+        registeredUsers.put("user1", "password1");
+        registeredUsers.put("user2", "password2");
+
+        setTitle("Login Page");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(300, 150);
-        
+        setSize(300, 200);
+
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(3, 2));
-        
+        panel.setLayout(new BorderLayout());
+
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new GridLayout(3, 2));
+
         JLabel usernameLabel = new JLabel("Username:");
-        panel.add(usernameLabel);
-        
         usernameField = new JTextField();
-        panel.add(usernameField);
-        
         JLabel passwordLabel = new JLabel("Password:");
-        panel.add(passwordLabel);
-        
         passwordField = new JPasswordField();
-        panel.add(passwordField);
-        
-        loginButton = new JButton("Login");
-        loginButton.addActionListener(this);
-        panel.add(loginButton);
-        
+
+        JButton loginButton = new JButton("Login");
+        JButton registerButton = new JButton("Register");
+
+        inputPanel.add(usernameLabel);
+        inputPanel.add(usernameField);
+        inputPanel.add(passwordLabel);
+        inputPanel.add(passwordField);
+        inputPanel.add(loginButton);
+        inputPanel.add(registerButton);
+
+        panel.add(inputPanel, BorderLayout.CENTER);
+
+        messageLabel = new JLabel("");
+        messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(messageLabel, BorderLayout.SOUTH);
+
+        loginButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String username = usernameField.getText();
+                String password = new String(passwordField.getPassword());
+
+                // Check if the username exists in the dictionary and if the password matches
+                if (registeredUsers.containsKey(username) && registeredUsers.get(username).equals(password)) {
+                    messageLabel.setText("Login Successful!");
+                    success = true; 
+                    // dispose(); // Close the login page
+                } else {
+                    messageLabel.setText("Invalid username or password!");
+                }
+            }
+        });
+
+        registerButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Open registration dialog
+                new RegisterDialog(LoginGUI.this);
+            }
+        });
+
         add(panel);
+        setLocationRelativeTo(null); // Center the window
         setVisible(true);
     }
-    
-    public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == loginButton) {
-            username = usernameField.getText();
-            password = new String(passwordField.getPassword());
-            loginSuccess = true;
 
-            // JOptionPane.showMessageDialog(this, "Username: " + username + "\nPassword: " + password);
+    // Inner class for registration dialog
+    class RegisterDialog extends JDialog {
+        private JTextField usernameField;
+        private JPasswordField passwordField;
+
+        public RegisterDialog(JFrame parent) {
+            super(parent, "Register New User", true);
+            setSize(300, 150);
+            setLocationRelativeTo(parent);
+
+            JPanel panel = new JPanel();
+            panel.setLayout(new GridLayout(3, 1));
+
+            JLabel usernameLabel = new JLabel("Username:");
+            usernameField = new JTextField();
+            JLabel passwordLabel = new JLabel("Password:");
+            passwordField = new JPasswordField();
+
+            JButton registerButton = new JButton("Register");
+            registerButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    String username = usernameField.getText();
+                    String password = new String(passwordField.getPassword());
+
+                    // Here you can add code to register the new user
+                    registeredUsers.put(username, password);
+                    // For now, let's just print them to console
+                    System.out.println("New Username: " + username);
+                    System.out.println("New Password: " + password);
+
+                    // Close the dialog
+                    dispose();
+                }
+            });
+
+            panel.add(usernameLabel);
+            panel.add(usernameField);
+            panel.add(passwordLabel);
+            panel.add(passwordField);
+            panel.add(registerButton);
+
+            add(panel);
+            setVisible(true);
         }
     }
+    public static HashMap<String, String> getUsers(){ 
+        return registeredUsers; 
+    }
 
-    protected boolean isLoginButtonPressed() {
-        return loginSuccess;
+    public static Boolean getSuccess(){ 
+        return success;
     }
-    public String getUsername() {
-        return username;
-    }
-    
-    public String getPassword() {
-        return password;
-    }
-    
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                LoginGUI login = new LoginGUI();
-                
-                while (!login.isLoginButtonPressed()) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                // Retrieve the username and password
-                String username = login.getUsername();
-                String password = login.getPassword();
-                System.out.print(username + " " + password);
-
+                new LoginGUI();
             }
         });
     }
-
 }
