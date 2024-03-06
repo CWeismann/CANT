@@ -4,11 +4,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.net.ConnectException;
 import java.security.*;
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class CantClient extends JFrame implements ActionListener {
     private JTextArea chatArea;
@@ -16,13 +13,11 @@ public class CantClient extends JFrame implements ActionListener {
     private JButton sendButton;
     private PrintWriter out;
     private JComboBox<String> clientDropdown;
-    private List<String> availableClients;
-    private static LoginGUI loginScreen;
-    private String ClientName; 
+    // private String ClientName; 
 
 
     public CantClient() {
-        setTitle("TLS Chat Client");
+        setTitle("CANT Client");
         setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -60,7 +55,7 @@ public class CantClient extends JFrame implements ActionListener {
 
     private void startClient() {
         try {
-
+            // REPLACE JKS??
             KeyStore trustStore = KeyStore.getInstance("JKS");
             trustStore.load(new FileInputStream("client.truststore"), "AlamoStaffedDerivative".toCharArray());
 
@@ -117,10 +112,8 @@ public class CantClient extends JFrame implements ActionListener {
     public void updateClientDropdown(String[] clients) {
         clientDropdown.removeAllItems();
         for (String client : clients) {
-            // if (!client.equals(getClientId())) { // Exclude self from the list
-            //     clientDropdown.addItem(client);
-            // }
             if (!client.equals(getClientId())) { // Exclude self from the list
+                // THIS WILL ALWAYS HAPPEN DUE TO PLACEHOLDER IMPLEMENTATION
                 clientDropdown.addItem(client);
              }
         }
@@ -135,8 +128,8 @@ public class CantClient extends JFrame implements ActionListener {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
+                // LOGIN MUST OCCUR BEFORE CLIENT STARTS
                 LoginGUI loginScreen = new LoginGUI();
-                // new CantClient();
             
         });
     }
@@ -145,7 +138,7 @@ public class CantClient extends JFrame implements ActionListener {
         return "Client" + System.currentTimeMillis(); // Temporary client ID generation
         // return ClientName;
     }
-    private String getClientName(){
-        return ClientName;
-    }
+    // private String getClientName(){
+    //     return ClientName;
+    // }
 }

@@ -7,24 +7,17 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 
-import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.PreparedStatement;
 
 public class CantServer extends JFrame {
     private JTextArea chatArea;
-    private JComboBox<String> clientDropdown;
     private List<ClientHandler> clients;
     private MessageDBManager databaseManager;
-    private LoginGUI loginScreen;
 
     private volatile boolean running = true;
 
     public CantServer() {
-        setTitle("TLS Chat Server");
+        setTitle("CANT Server");
         setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
