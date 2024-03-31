@@ -24,10 +24,10 @@ public class CantClient extends JFrame implements ActionListener {
 
 
     public CantClient() {
-        setTitle("CANT Client");
+        clientID = generateClientId();
+        setTitle("CANT Client: " + clientID);
         setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        clientID = generateClientId();
         conversations = new HashMap<>();
         currentRecipient = null;
 
@@ -93,13 +93,20 @@ public class CantClient extends JFrame implements ActionListener {
             // Read incoming messages in a separate thread to avoid blocking the EDT
             new Thread(() -> {
                 try {
+                    // receive messages
                     BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     String message;
                     while ((message = in.readLine()) != null) {
                         if (message.startsWith("CLIENT_LIST:")) {
                             updateClientDropdown(message.substring("CLIENT_LIST:".length()).split(","));
                         } else {
-                            appendToChatArea(message, false);
+                            String sender = message.split(": ",2)[0];
+                            // System.out.println(sender);
+                            if (!conversations.containsKey(sender))
+                                conversations.put(sender, new ArrayList<String>());
+                            conversations.get(sender).add(message);
+                            if (sender.equals(currentRecipient))
+                                appendToChatArea(message, false);
                         }
                     }
                 } catch (IOException e) {
@@ -115,11 +122,15 @@ public class CantClient extends JFrame implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent e) {
+        // send messages
         if (e.getSource() == sendButton || e.getSource() == inputField) {
             String recipient = (String) clientDropdown.getSelectedItem();
             if (recipient != null) {
                 String message = inputField.getText();
                 if (!message.isEmpty()) {
+                    if (!conversations.containsKey(recipient))
+                        conversations.put(recipient, new ArrayList<String>());
+                    conversations.get(recipient).add("You: " + message);
                     out.println(recipient + ":" + message); // Send message with recipient's ID
                     appendToChatArea(message, true); // Mark the message as sent
                     inputField.setText("");

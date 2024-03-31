@@ -137,7 +137,7 @@ public class CantServer extends JFrame {
                         // Send message to the intended recipient
                         for (ClientHandler client : clients) {
                             if (client.getClientId().equals(recipient)) {
-                                client.sendMessage("Client " + clientId + ": " + content);
+                                client.sendMessage(clientId + ": " + content);
                                 break;
                             }
                         }
