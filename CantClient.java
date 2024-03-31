@@ -6,6 +6,9 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CantClient extends JFrame implements ActionListener {
     private JTextArea chatArea;
@@ -13,6 +16,10 @@ public class CantClient extends JFrame implements ActionListener {
     private JButton sendButton;
     private PrintWriter out;
     private JComboBox<String> clientDropdown;
+    private String clientID;
+    private Map<String, ArrayList<String>> conversations; // Map to store messages for each conversation
+    private String currentRecipient; // Currently selected recipient
+
     // private String ClientName; 
 
 
@@ -20,6 +27,9 @@ public class CantClient extends JFrame implements ActionListener {
         setTitle("CANT Client");
         setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        clientID = generateClientId();
+        conversations = new HashMap<>();
+        currentRecipient = null;
 
         JPanel panel = new JPanel(new BorderLayout());
 
@@ -44,6 +54,16 @@ public class CantClient extends JFrame implements ActionListener {
         panel.add(inputPanel, BorderLayout.SOUTH);
 
         add(panel);
+
+        clientDropdown.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                @SuppressWarnings("unchecked")
+                JComboBox<String> comboBox = (JComboBox<String>) e.getSource();
+                String selectedRecipient = (String) comboBox.getSelectedItem();
+                handleDropdownSelectionChange(selectedRecipient);
+            }
+        });
         
         setVisible(true);
         // loginScreen = new LoginGUI();
@@ -79,7 +99,7 @@ public class CantClient extends JFrame implements ActionListener {
                         if (message.startsWith("CLIENT_LIST:")) {
                             updateClientDropdown(message.substring("CLIENT_LIST:".length()).split(","));
                         } else {
-                            appendToChatArea(message);
+                            appendToChatArea(message, false);
                         }
                     }
                 } catch (IOException e) {
@@ -101,6 +121,7 @@ public class CantClient extends JFrame implements ActionListener {
                 String message = inputField.getText();
                 if (!message.isEmpty()) {
                     out.println(recipient + ":" + message); // Send message with recipient's ID
+                    appendToChatArea(message, true); // Mark the message as sent
                     inputField.setText("");
                 }
             } else {
@@ -108,23 +129,42 @@ public class CantClient extends JFrame implements ActionListener {
             }
         }
     }
+    
 
     public void updateClientDropdown(String[] clients) {
-        clientDropdown.removeAllItems();
-        for (String client : clients) {
-            if (!client.equals(getClientId())) { // Exclude self from the list
-                // THIS WILL ALWAYS HAPPEN DUE TO PLACEHOLDER IMPLEMENTATION
+        SwingUtilities.invokeLater(() -> {
+            clientDropdown.removeAllItems();
+            for (String client : clients) {
                 clientDropdown.addItem(client);
-             }
-        }
+            }
+        });
     }
 
-    private void appendToChatArea(String message) {
+    private void appendToChatArea(String message, boolean sent) {
         SwingUtilities.invokeLater(() -> {
-            chatArea.append(message + "\n");
+            if (sent) {
+                chatArea.append("You: " + message + "\n");
+            } else {
+                chatArea.append(message + "\n");
+            }
             chatArea.setCaretPosition(chatArea.getDocument().getLength());
         });
     }
+
+    private void handleDropdownSelectionChange(String selectedRecipient) {
+        // Clear chat area
+        chatArea.setText("");
+
+        // Update current recipient
+        currentRecipient = selectedRecipient;
+
+        // Display messages for the selected conversation
+        ArrayList<String> messages = conversations.getOrDefault(selectedRecipient, new ArrayList<>());
+        for (String message : messages) {
+            appendToChatArea(message, false);
+        }
+    }
+    
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -134,11 +174,14 @@ public class CantClient extends JFrame implements ActionListener {
         });
     }
 
-    private String getClientId() {
+    private String generateClientId() {
         return "Client" + System.currentTimeMillis(); // Temporary client ID generation
         // return ClientName;
     }
     // private String getClientName(){
     //     return ClientName;
     // }
+    public String getClientId() {
+        return clientID;
+    }
 }
