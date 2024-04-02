@@ -21,9 +21,9 @@ run_server:
 	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" CantServer
 
 run_client:
-	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" CantClient
+	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" CantClient $(USER) $(PASS) $(REG)
 
-run_login:
+run_login: # delete this
 	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" LoginGUI
 
 # Define target for cleaning up generated .class files

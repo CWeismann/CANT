@@ -72,7 +72,6 @@ class LoginDBManager{
          * Checks if the username and pw are correct
          */
         String sql = "SELECT * FROM login WHERE username='" + username +"'";
-        System.out.println(sql);
         try  (
             // create a database connection
             Connection connection = DriverManager.getConnection("jdbc:sqlite:login.db");
@@ -82,11 +81,9 @@ class LoginDBManager{
             // Execute update to the db
             System.out.println("trying to execute statement");
             ResultSet loginData = stmt.executeQuery(sql);
-            System.out.println("executed statement");
             if (loginData.next()){
                 // String db_username = loginData.getString("username");
                 String db_password = loginData.getString("password");
-                System.out.println("found correct pw");
 
                 connection.close();
                 return db_password.equals(password); // check if pw is correct

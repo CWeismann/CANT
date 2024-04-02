@@ -12,7 +12,9 @@ import java.io.IOException;
 public class CantServer extends JFrame {
     private JTextArea chatArea;
     private List<ClientHandler> clients;
+    // private List<LoginHandler> logins;
     private MessageDBManager databaseManager;
+    private LoginDBManager logindb;
 
     private volatile boolean running = true;
 
@@ -35,6 +37,7 @@ public class CantServer extends JFrame {
         clients = new ArrayList<>();
 
         databaseManager = new MessageDBManager();
+        logindb = new LoginDBManager();
         // loginScreen = new LoginGUI();
 
         startServer();
@@ -127,7 +130,7 @@ public class CantServer extends JFrame {
             try {
                 String message;
                 while ((message = in.readLine()) != null) {
-                    String[] parts = message.split(":", 2); // Split message into recipient and content
+                    String[] parts = message.split(":", 3); // Split message into recipient and content
                     if (parts.length == 2) {
                         String recipient = parts[0];
                         String content = parts[1];
@@ -141,6 +144,38 @@ public class CantServer extends JFrame {
                                 break;
                             }
                         }
+                    } else if (parts.length== 3){
+                        parts = message.split(":", 3);
+                        String clientUsername = parts[0];
+                        String clientPw = parts[1];
+                        String reg = parts[2];
+ 
+                        // Having a map of client id to client handlers would be nice. 
+                        for (ClientHandler client : clients) {
+                            if (client.getClientId().equals(this.getClientId())) {
+                                if (reg.equals("register")){
+                                    logindb.addLoginCredentials(clientUsername, clientPw, 70);
+                                    client.sendMessage("Login:1");
+                                } else {
+                                    if (logindb.checkCredentials(clientUsername, clientPw)){
+                                        client.sendMessage("Login:0");
+                                    } else {
+                                        client.sendMessage("Login:2");
+                                    }
+                                }
+                                try {
+                                    in.close();
+                                    out.close();
+                                    clientSocket.close();
+                                    clients.remove(this); // Remove client from the list upon disconnection
+                                    broadcastClientList(); // Broadcast updated client list
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    } else {
+                        System.out.println(parts[0]);
                     }
                 }
             } catch (IOException e) {

@@ -9,7 +9,7 @@ public class LoginGUI extends JFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JLabel messageLabel;
-    private LoginDBManager databaseManager;
+    // private LoginDBManager databaseManager;
     private static Boolean success = false; 
     String username;
     String password;
@@ -51,7 +51,7 @@ public class LoginGUI extends JFrame {
         messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         panel.add(messageLabel, BorderLayout.NORTH);
 
-        databaseManager = new LoginDBManager();
+        // databaseManager = new LoginDBManager();
 
         loginButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -59,7 +59,7 @@ public class LoginGUI extends JFrame {
                 password = new String(passwordField.getPassword());
 
                 // Check if the username exists in the dictionary and if the password matches
-                if (databaseManager.checkCredentials(username, password)) {
+                if (true/*databaseManager.checkCredentials(username, password)*/) {
                     messageLabel.setText("Login Successful!");
                     success = true; 
                     try {
@@ -69,7 +69,7 @@ public class LoginGUI extends JFrame {
                     }
 
                     SwingUtilities.invokeLater(() -> {
-                        new CantClient(); 
+                        new CantClient("user1", "user2", false); 
                     });
                     // /setVisible(false);
                     dispose(); // Close the login page
@@ -121,7 +121,7 @@ public class LoginGUI extends JFrame {
                     String password = new String(passwordField.getPassword());
 
                     // Here you can add code to register the new user
-                    databaseManager.addLoginCredentials(username, password, 70); // default salt is 70
+                    //databaseManager.addLoginCredentials(username, password, 70); // default salt is 70
                     // For now, let's just print them to console
                     System.out.println("New Username: " + username);
                     System.out.println("New Password: " + password);
