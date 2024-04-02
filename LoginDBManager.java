@@ -99,4 +99,23 @@ class LoginDBManager{
         }
     
     }
+
+    // public static String getUsernameById(int clientId) {
+    //     String sql = "SELECT username FROM login WHERE id = ?";
+    //     try (
+    //         Connection connection = DriverManager.getConnection("jdbc:sqlite:login.db");
+    //         PreparedStatement ps = connection.prepareStatement(sql);
+    //     ) {
+    //         ps.setInt(1, clientId);
+    //         ResultSet rs = ps.executeQuery();
+    //         if (rs.next()) {
+    //             String username = rs.getString("username");
+    //             return username;
+    //         }
+    //     } catch (SQLException e) {
+    //         System.out.println("Failed to retrieve username: " + e.getMessage());
+    //     }
+    //     return "";
+    // }
+
 }

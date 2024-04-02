@@ -88,7 +88,7 @@ public class CantServer extends JFrame {
     private void broadcastClientList() {
         StringBuilder clientListBuilder = new StringBuilder();
         for (ClientHandler client : clients) {
-            clientListBuilder.append(client.getClientId()).append(",");
+            clientListBuilder.append(client.getClientUser()).append(",");
         }
         String clientList = clientListBuilder.toString();
         for (ClientHandler client : clients) {
@@ -97,17 +97,31 @@ public class CantServer extends JFrame {
     }
 
     private class ClientHandler implements Runnable {
+
         private final SSLSocket clientSocket;
         private PrintWriter out;
         private BufferedReader in;
-        private String clientId;
+        // private String clientId;
+        private String sender;
+        private String message; 
+        private String recipient; 
+        private String content; 
 
         public ClientHandler(SSLSocket clientSocket) {
             this.clientSocket = clientSocket;
             try {
                 out = new PrintWriter(clientSocket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                clientId = "Client" + System.currentTimeMillis(); // Assign unique client ID
+                while ((message = in.readLine()) != null) {
+                    String[] parts = message.split(":", 3); // Split message into recipient and content
+                    if (parts.length == 3) {
+                        sender = parts[0];
+                        recipient = parts[1];
+                        content = parts[2];
+                    }
+                }
+
+                //clientId = "Client" + System.currentTimeMillis(); // Assign unique client ID
             } catch (IOException e) {
                 e.printStackTrace();
                 try {
@@ -118,33 +132,26 @@ public class CantServer extends JFrame {
             }
         }
 
-        public String getClientId() {
-            return clientId;
+        public String getClientUser() {
+            return sender;
         }
+       
 
         @Override
         public void run() {
             try {
-                String message;
-                while ((message = in.readLine()) != null) {
-                    String[] parts = message.split(":", 2); // Split message into recipient and content
-                    if (parts.length == 2) {
-                        String recipient = parts[0];
-                        String content = parts[1];
-                        String sender = this.getClientId();
-                        // Log the message to the database
-                        databaseManager.addToMessageDB(sender,recipient, content);
-                        // Send message to the intended recipient
-                        for (ClientHandler client : clients) {
-                            if (client.getClientId().equals(recipient)) {
-                                client.sendMessage(clientId + ": " + content);
-                                break;
-                            }
-                        }
+                // String message;
+                databaseManager.addToMessageDB(this.getClientUser(), recipient, content);
+                // Send message to the intended recipient
+                for (ClientHandler client : clients) {
+                    if (client.getClientUser().equals(recipient)) {
+                        client.sendMessage(recipient + ": " + content);
+                        System.out.println(recipient + ": " + content);
+                             break;
                     }
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+            // } catch (IOException e) {
+            //     e.printStackTrace();
             } finally {
                 try {
                     in.close();

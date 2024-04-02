@@ -19,13 +19,17 @@ public class CantClient extends JFrame implements ActionListener {
     private String clientID;
     private Map<String, ArrayList<String>> conversations; // Map to store messages for each conversation
     private String currentRecipient; // Currently selected recipient
+    private String Username;
+    private String Password;
 
     // private String ClientName; 
 
 
-    public CantClient() {
+    public CantClient(String username, String password) {
+        Username = username; 
+        Password = password;
         clientID = generateClientId();
-        setTitle("CANT Client: " + clientID);
+        setTitle("CANT Client: " + username);
         setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         conversations = new HashMap<>();
@@ -125,13 +129,14 @@ public class CantClient extends JFrame implements ActionListener {
         // send messages
         if (e.getSource() == sendButton || e.getSource() == inputField) {
             String recipient = (String) clientDropdown.getSelectedItem();
+            String sender = this.Username;
             if (recipient != null) {
                 String message = inputField.getText();
                 if (!message.isEmpty()) {
                     if (!conversations.containsKey(recipient))
                         conversations.put(recipient, new ArrayList<String>());
                     conversations.get(recipient).add("You: " + message);
-                    out.println(recipient + ":" + message); // Send message with recipient's ID
+                   out.println(sender + ":" + recipient + ":" + message + ":"); // Send message with recipient's ID
                     appendToChatArea(message, true); // Mark the message as sent
                     inputField.setText("");
                 }
@@ -194,5 +199,8 @@ public class CantClient extends JFrame implements ActionListener {
     // }
     public String getClientId() {
         return clientID;
+    }
+    public String getClientUser() {
+        return Username;
     }
 }

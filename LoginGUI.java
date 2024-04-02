@@ -69,7 +69,7 @@ public class LoginGUI extends JFrame {
                     }
 
                     SwingUtilities.invokeLater(() -> {
-                        new CantClient(); 
+                        new CantClient(username, password); 
                     });
                     // /setVisible(false);
                     dispose(); // Close the login page
