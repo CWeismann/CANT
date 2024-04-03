@@ -154,8 +154,12 @@ public class CantServer extends JFrame {
                         for (ClientHandler client : clients) {
                             if (client.getClientId().equals(this.getClientId())) {
                                 if (reg.equals("register")){
-                                    logindb.addLoginCredentials(clientUsername, clientPw, 70);
-                                    client.sendMessage("Login:1");
+                                    if (logindb.addLoginCredentials(clientUsername, clientPw)){
+                                        client.sendMessage("Login:1");
+                                    } else {
+                                        client.sendMessage("Login:3");
+                                    }
+                                    
                                 } else {
                                     if (logindb.checkCredentials(clientUsername, clientPw)){
                                         client.sendMessage("Login:0");

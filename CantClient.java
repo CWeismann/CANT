@@ -126,25 +126,25 @@ public class CantClient extends JFrame implements ActionListener {
                             // 2: Unsuccessful login
                             String[] parts = message.split(":", 2);
                             int loginCode = Integer.parseInt(parts[1]);
-                            if (loginCode == 0){
-                                authenticated = true;
-                                System.out.println("User Authenticated");
-                                return;
-                            } else if (loginCode == 1){
-                                // appendToChatArea("Sucessfully Registered New User. Please login again", true);
-                                try {
-                                    Thread.sleep(2000); // Sleep for 1 second
-                                } catch (InterruptedException ex) {
-                                    ex.printStackTrace();
-                                }
-                                socket.close();
-                                System.exit(0);
-                            } else if (loginCode == 2){
-                                // appendToChatArea("Incorrect Password. Please login again", true);
-                                socket.close();
-                                System.exit(0);
+                            switch(loginCode){
+                                case 0:
+                                    authenticated = true;
+                                    System.out.println("User Authenticated");
+                                    return;
+                                case 1:
+                                    System.out.println("Sucessfully Registered New User. Please login again");
+                                    socket.close();
+                                    System.exit(0);    
+                                case 2:  
+                                    System.out.println("Incorrect Password. Please login again");
+                                    socket.close();
+                                    System.exit(0);  
+                                case 3:
+                                    System.out.println("Registration Error. Username already taken");
+                                    socket.close();
+                                    System.exit(0);  
                             }
-                        } 
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -155,7 +155,6 @@ public class CantClient extends JFrame implements ActionListener {
             System.out.println("Error with Server Connections!");
             e.printStackTrace();
         }
-
     }
 
 

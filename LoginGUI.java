@@ -51,8 +51,6 @@ public class LoginGUI extends JFrame {
         messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         panel.add(messageLabel, BorderLayout.NORTH);
 
-        // databaseManager = new LoginDBManager();
-
         loginButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 username = usernameField.getText();
@@ -79,7 +77,6 @@ public class LoginGUI extends JFrame {
                 }
             }
 
-            
         });
         
 
