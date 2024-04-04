@@ -115,17 +115,19 @@ public class CantServer extends JFrame {
             try {
                 out = new PrintWriter(clientSocket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            
                 while ((message = in.readLine()) != null) {
                     String[] parts = message.split(":", 4); // Split message into recipient and content
                     if (parts.length == 3) {
                         sender = parts[0];
                         content = parts[1];
                         recipient = parts[2];
+                        clientUser = sender;
 
                     }
                     else{ 
                         parts = message.split(":", 4);
-                        String clientUsername = parts[0];
+                        clientUser= parts[0];
                         // Panel.setText("recieved login username: " + clientUsername);
                         String clientPw = parts[1];
                         System.out.println("recieved login password: " + clientPw);

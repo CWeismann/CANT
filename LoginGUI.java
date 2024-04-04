@@ -166,6 +166,7 @@ public class LoginGUI extends JFrame {
             SSLSocket socket = connectToServer();
             out = new PrintWriter(socket.getOutputStream(), true);
             if (reg){
+                System.out.println ("register");
                 out.println(clientName + ":" + clientpw + ":" + "register");
             } else{
                 out.println(clientName + ":" + clientpw + ":login");
@@ -186,7 +187,6 @@ public class LoginGUI extends JFrame {
                             if (loginCode == 0){
                                 authenticated = true;
                                 // messageLabel.setText("user authenticated");
-
                                 System.out.println("User Authenticated");
                                 return;
                             } else if (loginCode == 1){
@@ -220,7 +220,8 @@ public class LoginGUI extends JFrame {
             e.printStackTrace();
         }
 
-        return true; 
+        return true;
+        
 
     }
 

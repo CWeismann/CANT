@@ -200,6 +200,8 @@ public class CantClient extends JFrame implements ActionListener {
         new LoginGUI();
     }
 
+    
+
     private String generateClientId() {
         return "Client" + System.currentTimeMillis(); // Temporary client ID generation
         // return ClientName;
