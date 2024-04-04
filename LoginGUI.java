@@ -1,14 +1,33 @@
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.HashMap;
-import javax.swing.Timer;
 
 
 public class LoginGUI extends JFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JLabel messageLabel;
+    private PrintWriter out;
+    private boolean authenticated;
+    //private String clientName; 
+    //private String clientpw;
+    private boolean registerUser;
+
     // private LoginDBManager databaseManager;
     private static Boolean success = false; 
     String username;
@@ -57,9 +76,9 @@ public class LoginGUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 username = usernameField.getText();
                 password = new String(passwordField.getPassword());
-
+                checkLoginDB(username, password, false);
                 // Check if the username exists in the dictionary and if the password matches
-                if (true/*databaseManager.checkCredentials(username, password)*/) {
+                if (authenticated) {
                     messageLabel.setText("Login Successful!");
                     success = true; 
                     try {
@@ -69,7 +88,7 @@ public class LoginGUI extends JFrame {
                     }
 
                     SwingUtilities.invokeLater(() -> {
-                        new CantClient("user1", "user2", false); 
+                        new CantClient(username, password); 
                     });
                     // /setVisible(false);
                     dispose(); // Close the login page
@@ -119,12 +138,12 @@ public class LoginGUI extends JFrame {
                 public void actionPerformed(ActionEvent e) {
                     String username = usernameField.getText();
                     String password = new String(passwordField.getPassword());
-
-                    // Here you can add code to register the new user
+                    checkLoginDB(username, password, true);
                     //databaseManager.addLoginCredentials(username, password, 70); // default salt is 70
                     // For now, let's just print them to console
                     System.out.println("New Username: " + username);
                     System.out.println("New Password: " + password);
+                    // messageLabel.setText("Invalid username or password!");
 
                     // Close the dialog
                     dispose();
@@ -141,6 +160,98 @@ public class LoginGUI extends JFrame {
             setVisible(true);
         }
     }
+
+    public Boolean checkLoginDB(String clientName, String clientpw, Boolean reg){ 
+        try {
+            SSLSocket socket = connectToServer();
+            out = new PrintWriter(socket.getOutputStream(), true);
+            if (reg){
+                out.println(clientName + ":" + clientpw + ":" + "register");
+            } else{
+                out.println(clientName + ":" + clientpw + ":login");
+            }
+            new Thread(() -> {
+                try {
+                    // receive messages
+                    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    String message;
+                    while ((message = in.readLine()) != null) {
+                        if (message.startsWith("Login:")){
+                            // 3 cases: 
+                            // 0: Successful login
+                            // 1: Successful registration
+                            // 2: Unsuccessful login
+                            String[] parts = message.split(":", 2);
+                            int loginCode = Integer.parseInt(parts[1]);
+                            if (loginCode == 0){
+                                authenticated = true;
+                                // messageLabel.setText("user authenticated");
+
+                                System.out.println("User Authenticated");
+                                return;
+                            } else if (loginCode == 1){
+                                messageLabel.setText("successfully registered new user");
+                                registerUser = true; 
+                                // appendToChatArea("Sucessfully Registered New User. Please login again", true);
+                                try {
+                                    Thread.sleep(2000); // Sleep for 1 second
+                                } catch (InterruptedException ex) {
+                                    ex.printStackTrace();
+                                }
+                                socket.close();
+                                return;
+                                //System.exit(0);
+                            } else if (loginCode == 2){
+                                messageLabel.setText("Incorrect Password. Please login again");
+                                // appendToChatArea("Incorrect Password. Please login again", true);
+                                socket.close();
+                                return;
+                                // System.exit(0);
+                            }
+                        } 
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
+        } catch (IOException e) {
+            System.out.println("Error with Server Connections!");
+            e.printStackTrace();
+        }
+
+        return true; 
+
+    }
+
+    // public Boolean registerinDB(String clientUsername, String clientpassword){ 
+        
+    //     return true; 
+    // }
+
+    private SSLSocket connectToServer(){
+        try{
+            KeyStore trustStore = KeyStore.getInstance("JKS");
+            trustStore.load(new FileInputStream("client.truststore"), "AlamoStaffedDerivative".toCharArray());
+
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            trustManagerFactory.init(trustStore);
+
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, trustManagerFactory.getTrustManagers(), null);
+
+            SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+            SSLSocket socket = (SSLSocket) sslSocketFactory.createSocket("localhost", 12345);
+            return socket;
+        } catch (IOException | KeyStoreException | NoSuchAlgorithmException |
+                CertificateException | KeyManagementException e) {
+            System.out.println("Error with Server Connections!");
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
     public String getUser(){ 
         return username; 
     }
@@ -148,12 +259,8 @@ public class LoginGUI extends JFrame {
     public Boolean getSuccess(){ 
         return success;
     }
-    // Delete this
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                new LoginGUI();
-        }
-        });
+    
+    public static void main(String[] args){
+        new LoginGUI();
     }
 }

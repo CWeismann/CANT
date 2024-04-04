@@ -91,7 +91,7 @@ public class CantServer extends JFrame {
     private void broadcastClientList() {
         StringBuilder clientListBuilder = new StringBuilder();
         for (ClientHandler client : clients) {
-            clientListBuilder.append(client.getClientId()).append(",");
+            clientListBuilder.append(client.getClientUser()).append(",");
         }
         String clientList = clientListBuilder.toString();
         for (ClientHandler client : clients) {
@@ -103,14 +103,38 @@ public class CantServer extends JFrame {
         private final SSLSocket clientSocket;
         private PrintWriter out;
         private BufferedReader in;
-        private String clientId;
+        // private String clientId;
+        private String clientUser;
+        private String sender;
+        private String message; 
+        private String recipient; 
+        private String content; 
 
         public ClientHandler(SSLSocket clientSocket) {
             this.clientSocket = clientSocket;
             try {
                 out = new PrintWriter(clientSocket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                clientId = "Client" + System.currentTimeMillis(); // Assign unique client ID
+                while ((message = in.readLine()) != null) {
+                    String[] parts = message.split(":", 4); // Split message into recipient and content
+                    if (parts.length == 3) {
+                        sender = parts[0];
+                        content = parts[1];
+                        recipient = parts[2];
+
+                    }
+                    else{ 
+                        parts = message.split(":", 4);
+                        String clientUsername = parts[0];
+                        // Panel.setText("recieved login username: " + clientUsername);
+                        String clientPw = parts[1];
+                        System.out.println("recieved login password: " + clientPw);
+                        String reg = parts[2];
+                        System.out.println("recieved reg: " + reg);
+
+                    }
+                }
+                //clientId = "Client" + System.currentTimeMillis(); // Assign unique client ID
             } catch (IOException e) {
                 e.printStackTrace();
                 try {
@@ -121,8 +145,11 @@ public class CantServer extends JFrame {
             }
         }
 
-        public String getClientId() {
-            return clientId;
+        // public String getClientId() {
+        //     return clientId;
+        // }
+        public String getClientUser(){
+            return clientUser; 
         }
 
         @Override
@@ -130,53 +157,46 @@ public class CantServer extends JFrame {
             try {
                 String message;
                 while ((message = in.readLine()) != null) {
-                    String[] parts = message.split(":", 3); // Split message into recipient and content
-                    if (parts.length == 2) {
-                        String recipient = parts[0];
-                        String content = parts[1];
-                        String sender = this.getClientId();
-                        // Log the message to the database
-                        databaseManager.addToMessageDB(sender,recipient, content);
-                        // Send message to the intended recipient
-                        for (ClientHandler client : clients) {
-                            if (client.getClientId().equals(recipient)) {
-                                client.sendMessage(clientId + ": " + content);
-                                break;
-                            }
-                        }
-                    } else if (parts.length== 3){
-                        parts = message.split(":", 3);
-                        String clientUsername = parts[0];
-                        String clientPw = parts[1];
-                        String reg = parts[2];
- 
-                        // Having a map of client id to client handlers would be nice. 
-                        for (ClientHandler client : clients) {
-                            if (client.getClientId().equals(this.getClientId())) {
-                                if (reg.equals("register")){
-                                    logindb.addLoginCredentials(clientUsername, clientPw, 70);
-                                    client.sendMessage("Login:1");
+                    System.out.println("MESSAGE RECIEVED IN SERVER: " + message);
+                    String[] parts = message.split(":"); // Split message into recipient and content
+
+                // if (parts.length == 4){
+                    parts = message.split(":");
+                    String clientUsername = parts[0];
+                    // Panel.setText("recieved login username: " + clientUsername);
+                    String clientPw = parts[1];
+                    System.out.println("recieved login password: " + clientPw);
+                    String reg = parts[2];
+                    System.out.println("recieved reg: " + reg);
+
+
+                    // Having a map of client id to client handlers would be nice. 
+                    for (ClientHandler client : clients) {
+                        if (client.getClientUser().equals(this.getClientUser())) {
+                            if (reg.equals("register")){
+                                logindb.addLoginCredentials(clientUsername, clientPw, 70);
+                                client.sendMessage("Register:1");
+                            } else {
+                                if (logindb.checkCredentials(clientUsername, clientPw)){
+                                    client.sendMessage("Login:0");
                                 } else {
-                                    if (logindb.checkCredentials(clientUsername, clientPw)){
-                                        client.sendMessage("Login:0");
-                                    } else {
-                                        client.sendMessage("Login:2");
-                                    }
-                                }
-                                try {
-                                    in.close();
-                                    out.close();
-                                    clientSocket.close();
-                                    clients.remove(this); // Remove client from the list upon disconnection
-                                    broadcastClientList(); // Broadcast updated client list
-                                } catch (IOException e) {
-                                    e.printStackTrace();
+                                    client.sendMessage("Login:2");
                                 }
                             }
+                            try {
+                                in.close();
+                                out.close();
+                                clientSocket.close();
+                                clients.remove(this); // Remove client from the list upon disconnection
+                                broadcastClientList(); // Broadcast updated client list
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
-                    } else {
-                        System.out.println(parts[0]);
                     }
+                // } else {
+                //     System.out.println(parts[0]);
+                // }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
