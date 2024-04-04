@@ -12,5 +12,6 @@ Needs to have the jdbc driver installed.
 Commands to run this software: 
 1. `make`: Build the project
 2. `make run_server`: Run the server
-3. `make run_client`: Run a client
-4. `python3 dumpDB.py`: Dump the entire messages and login database. For testing purposes. 
+3. `make register USER=<username> PASS=<password>`: Register a username and password
+4. `make connect USER=<username> PASS=<password>`: Login to the server
+5. `python3 dumpDB.py`: Dump the entire messages and login database. For testing purposes. 
