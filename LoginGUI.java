@@ -188,6 +188,7 @@ public class LoginGUI extends JFrame {
                                 authenticated = true;
                                 // messageLabel.setText("user authenticated");
                                 System.out.println("User Authenticated");
+                                socket.close();
                                 return;
                             } else if (loginCode == 1){
                                 messageLabel.setText("successfully registered new user");
