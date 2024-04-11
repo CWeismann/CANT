@@ -14,6 +14,7 @@ public class CantClient extends JFrame implements ActionListener {
     private JTextArea chatArea;
     private JTextField inputField;
     private JButton sendButton;
+    private JButton clearButton;
     private PrintWriter out;
     private JComboBox<String> clientDropdown;
     private String clientID;
@@ -55,6 +56,12 @@ public class CantClient extends JFrame implements ActionListener {
 
         panel.add(inputPanel, BorderLayout.SOUTH);
 
+        clearButton = new JButton("Clear History");
+        clearButton.addActionListener(this);
+        JPanel topRightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        topRightPanel.add(clearButton);
+        panel.add(topRightPanel, BorderLayout.NORTH);
+
         add(panel);
 
         clientDropdown.addActionListener(new ActionListener() {
@@ -70,6 +77,11 @@ public class CantClient extends JFrame implements ActionListener {
         clientName = username;
         clientpw = password;
         registerUser = newUser;
+
+        loadConversationsFromFile();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            saveConversationsToFile();
+        }));
         
         setVisible(true);
         // loginScreen = new LoginGUI();
@@ -203,13 +215,16 @@ public class CantClient extends JFrame implements ActionListener {
                         if (!conversations.containsKey(recipient))
                             conversations.put(recipient, new ArrayList<String>());
                         conversations.get(recipient).add("You: " + message);
-                        out.println(recipient + ":" + message); // Send message with recipient's ID
+                        out.println(" :" + recipient + ":" + clientName + ":" + message); // Send message with recipient's ID
+                        // add timestamp to front eventually?
                         appendToChatArea(message, true); // Mark the message as sent
                         inputField.setText("");
                     }
                 } else {
                     JOptionPane.showMessageDialog(this, "No recipient selected.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
+            } else if (e.getSource() == clearButton) {
+                clearConversationHistory();
             }
         } else {
             appendToChatArea("User must be authenticated before sending messages!", true);
@@ -282,5 +297,45 @@ public class CantClient extends JFrame implements ActionListener {
 
     public String getClientId() {
         return clientID;
+    }
+
+    private void clearConversationHistory() {
+        conversations.clear();
+        chatArea.setText("");
+    }
+
+    private void loadConversationsFromFile() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(clientName + "_conversations.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Split the line to extract sender and message
+                String[] parts = line.split(": ", 2);
+                String sender = parts[0];
+                String message = parts[1];
+
+                // Add message to sender's conversation
+                if (!conversations.containsKey(sender))
+                    conversations.put(sender, new ArrayList<String>());
+                conversations.get(sender).add(message);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Method to save conversations to a text file
+    private void saveConversationsToFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(clientName + "_conversations.txt"))) {
+            for (Map.Entry<String, ArrayList<String>> entry : conversations.entrySet()) {
+                String sender = entry.getKey();
+                for (String message : entry.getValue()) {
+                    // Write sender and message to the file
+                    writer.write(sender + ": " + message);
+                    writer.newLine();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

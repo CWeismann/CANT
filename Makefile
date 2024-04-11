@@ -34,4 +34,5 @@ run_login: # delete this
 clean:
 	find $(OUTDIR) -name '*.class' -delete
 	find $(OUTDIR) -name '*.db' -delete
+	find $(OUTDIR) -name '*_conversations.txt' -delete
 .PHONY: all clean

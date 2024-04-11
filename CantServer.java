@@ -130,21 +130,23 @@ public class CantServer extends JFrame {
             try {
                 String message;
                 while ((message = in.readLine()) != null) {
-                    String[] parts = message.split(":", 3); // Split message into recipient and content
-                    if (parts.length == 2) {
-                        String recipient = parts[0];
-                        String content = parts[1];
-                        String sender = this.getClientId();
+                    String[] parts = message.split(":", 4); // Split message into recipient and content
+                    if (parts.length == 4) {
+                        String timestamp = parts[0]; // placeholder currently space
+                        String recipientId = parts[1];
+                        String sender = parts[2];
+                        String content = parts[3];
+                        // String sender = this.getClientId();
                         // Log the message to the database
-                        databaseManager.addToMessageDB(sender,recipient, content);
+                        databaseManager.addToMessageDB(sender,recipientId,content);
                         // Send message to the intended recipient
                         for (ClientHandler client : clients) {
-                            if (client.getClientId().equals(recipient)) {
+                            if (client.getClientId().equals(recipientId)) {
                                 client.sendMessage(clientId + ": " + content);
                                 break;
                             }
                         }
-                    } else if (parts.length== 3){
+                    } else if (parts.length == 3){
                         parts = message.split(":", 3);
                         String clientUsername = parts[0];
                         String clientPw = parts[1];
