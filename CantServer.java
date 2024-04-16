@@ -6,6 +6,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import java.io.IOException;
 
@@ -34,7 +35,7 @@ public class CantServer extends JFrame {
 
         setVisible(true);
 
-        clients = new ArrayList<>();
+        clients = new CopyOnWriteArrayList<>();
 
         databaseManager = new MessageDBManager();
         logindb = new LoginDBManager();
@@ -91,7 +92,9 @@ public class CantServer extends JFrame {
     private void broadcastClientList() {
         StringBuilder clientListBuilder = new StringBuilder();
         for (ClientHandler client : clients) {
-            clientListBuilder.append(client.getClientId()).append(",");
+            // clientListBuilder.append(client.getClientId()).append(",");
+            if (!client.getClientName().equals(""))
+                clientListBuilder.append(client.getClientName()).append(",");
         }
         String clientList = clientListBuilder.toString();
         for (ClientHandler client : clients) {
@@ -104,6 +107,7 @@ public class CantServer extends JFrame {
         private PrintWriter out;
         private BufferedReader in;
         private String clientId;
+        private String username;
 
         public ClientHandler(SSLSocket clientSocket) {
             this.clientSocket = clientSocket;
@@ -111,6 +115,7 @@ public class CantServer extends JFrame {
                 out = new PrintWriter(clientSocket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 clientId = "Client" + System.currentTimeMillis(); // Assign unique client ID
+                username = clientId;
             } catch (IOException e) {
                 e.printStackTrace();
                 try {
@@ -119,10 +124,20 @@ public class CantServer extends JFrame {
                     ex.printStackTrace();
                 }
             }
+            broadcastClientList();
         }
 
         public String getClientId() {
             return clientId;
+        }
+
+        public void setClientName(String newName) {
+            System.out.println(newName);
+            this.username = newName;
+        }
+
+        public String getClientName() {
+            return username;
         }
 
         @Override
@@ -131,18 +146,28 @@ public class CantServer extends JFrame {
                 String message;
                 while ((message = in.readLine()) != null) {
                     String[] parts = message.split(":", 4); // Split message into recipient and content
-                    if (parts.length == 4) {
+                    if (parts.length == 1) {
+                        in.close();
+                        out.close();
+                        clientSocket.close();
+                        clients.remove(this); // Remove client from the list upon disconnection
+                        broadcastClientList();
+                    } else if (parts.length == 4) {
                         String timestamp = parts[0]; // placeholder currently space
-                        String recipientId = parts[1];
+                        String recipient = parts[1];
                         String sender = parts[2];
                         String content = parts[3];
                         // String sender = this.getClientId();
                         // Log the message to the database
-                        databaseManager.addToMessageDB(sender,recipientId,content);
+                        databaseManager.addToMessageDB(sender,recipient,content);
                         // Send message to the intended recipient
                         for (ClientHandler client : clients) {
-                            if (client.getClientId().equals(recipientId)) {
-                                client.sendMessage(clientId + ": " + content);
+                            // if (client.getClientId().equals(recipientId)) {
+                            if (client.getClientName().equals(recipient)) {
+                                // client.sendMessage(clientId + ": " + content);
+                                System.out.print("recipient: " + recipient + ", ");
+                                System.out.print("sender: " + sender + "\n");
+                                client.sendMessage(sender + ": " + content);
                                 break;
                             }
                         }
@@ -151,9 +176,11 @@ public class CantServer extends JFrame {
                         String clientUsername = parts[0];
                         String clientPw = parts[1];
                         String reg = parts[2];
+                        Boolean loggedin = false;
  
                         // Having a map of client id to client handlers would be nice. 
                         for (ClientHandler client : clients) {
+                            loggedin = false;
                             if (client.getClientId().equals(this.getClientId())) {
                                 if (reg.equals("register")){
                                     if (logindb.addLoginCredentials(clientUsername, clientPw)){
@@ -165,21 +192,37 @@ public class CantServer extends JFrame {
                                 } else {
                                     if (logindb.checkCredentials(clientUsername, clientPw)){
                                         client.sendMessage("Login:0");
+                                        this.setClientName(clientUsername);
+                                        loggedin = true;
                                     } else {
                                         client.sendMessage("Login:2");
                                     }
                                 }
-                                try {
-                                    in.close();
-                                    out.close();
-                                    clientSocket.close();
-                                    clients.remove(this); // Remove client from the list upon disconnection
-                                    broadcastClientList(); // Broadcast updated client list
-                                } catch (IOException e) {
-                                    e.printStackTrace();
+                                if(loggedin) {
+                                    // try {
+                                    //     in.close();
+                                    //     out.close();
+                                    // } catch (IOException e) {
+                                    //     e.printStackTrace();
+                                    // }
+                                    broadcastClientList();
+                                    break;
+                                } else {
+                                    // System.out.println("closing!!");
+                                    try {
+                                        in.close();
+                                        out.close();
+                                        clientSocket.close();
+                                        clients.remove(this); // Remove client from the list upon disconnection
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                    broadcastClientList();
+                                    return;
                                 }
                             }
                         }
+                        continue;
                     } else {
                         System.out.println(parts[0]);
                     }
@@ -187,15 +230,16 @@ public class CantServer extends JFrame {
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
-                try {
-                    in.close();
-                    out.close();
-                    clientSocket.close();
-                    clients.remove(this); // Remove client from the list upon disconnection
-                    broadcastClientList(); // Broadcast updated client list
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            //     try {
+            //         in.close();
+            //         out.close();
+            //         clientSocket.close();
+            //         clients.remove(this); // Remove client from the list upon disconnection
+                broadcastClientList(); // Broadcast updated client list
+            //     } catch (IOException e) {
+            //         e.printStackTrace();
+            //     }
+            // }
             }
         }
 

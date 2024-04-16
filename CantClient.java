@@ -24,13 +24,14 @@ public class CantClient extends JFrame implements ActionListener {
     private String clientName; 
     private String clientpw;
     private boolean registerUser;
+    private SSLSocket socket;
 
 
     public CantClient(String username, String password, boolean newUser) {
         clientID = generateClientId();
         setTitle("CANT Client: " + username);
         setSize(400, 300);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         conversations = new HashMap<>();
         currentRecipient = null;
 
@@ -73,7 +74,8 @@ public class CantClient extends JFrame implements ActionListener {
                 handleDropdownSelectionChange(selectedRecipient);
             }
         });
-        authenticated = false;
+        // authenticated = false;
+        authenticated = true; //temporary
         clientName = username;
         clientpw = password;
         registerUser = newUser;
@@ -85,8 +87,10 @@ public class CantClient extends JFrame implements ActionListener {
         
         setVisible(true);
         // loginScreen = new LoginGUI();
+        socket = connectToServer();
         startLogin();
-        startClient();
+        if(!registerUser)
+            startClient();
         // ClientName = loginScreen.getUser();
         
     }
@@ -116,12 +120,10 @@ public class CantClient extends JFrame implements ActionListener {
     }
 
     private void startLogin(){
-
-        try {
-            SSLSocket socket = connectToServer();
+        try {   
             out = new PrintWriter(socket.getOutputStream(), true);
             if (registerUser){
-                out.println(clientName + ":" + clientpw + ":" + "register");
+                out.println(clientName + ":" + clientpw + ":register");
             } else{
                 out.println(clientName + ":" + clientpw + ":login");
             }
@@ -162,7 +164,6 @@ public class CantClient extends JFrame implements ActionListener {
                     e.printStackTrace();
                 }
             }).start();
-
         } catch (IOException e) {
             System.out.println("Error with Server Connections!");
             e.printStackTrace();
@@ -171,38 +172,40 @@ public class CantClient extends JFrame implements ActionListener {
 
 
     private void startClient() {
-        SSLSocket socket = connectToServer();
-        try{
-            out = new PrintWriter(socket.getOutputStream(), true);
+        // socket = connectToServer();
+        // try{
+        // out = new PrintWriter(socket.getOutputStream(), true);
 
-            // Read incoming messages in a separate thread to avoid blocking the EDT
-            new Thread(() -> {
-                try {
-                    // receive messages
-                    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    String message;
-                    while ((message = in.readLine()) != null) {
-                        if (message.startsWith("CLIENT_LIST:")) {
-                            updateClientDropdown(message.substring("CLIENT_LIST:".length()).split(","));
-                        } else {
-                            String sender = message.split(": ",2)[0];
-                            if (!conversations.containsKey(sender))
-                                conversations.put(sender, new ArrayList<String>());
-                            conversations.get(sender).add(message);
-                            if (sender.equals(currentRecipient))
-                                appendToChatArea(message, false);
-                        }
+        // Read incoming messages in a separate thread to avoid blocking the EDT
+        new Thread(() -> {
+            try {
+                // receive messages
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                String message;
+                while ((message = in.readLine()) != null) {
+                    if (message.startsWith("CLIENT_LIST:")) {
+                        updateClientDropdown(message.substring("CLIENT_LIST:".length()).split(","));
+                    } else {
+                        String sender = message.split(": ",2)[0];
+                        if (!conversations.containsKey(sender))
+                            conversations.put(sender, new ArrayList<String>());
+                        conversations.get(sender).add(message);
+                        if (sender.equals(currentRecipient))
+                            appendToChatArea(message, false);
                     }
-                    
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
-            }).start();
-        } catch (IOException e){
-            e.printStackTrace();
-        }
+                
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+        // } catch (IOException e){
+        //     e.printStackTrace();
+        // }
 
     }
+
+    
 
     public void actionPerformed(ActionEvent e) {
         // send messages
@@ -238,7 +241,7 @@ public class CantClient extends JFrame implements ActionListener {
             for (String client : clients) {
                 clientDropdown.addItem(client);
             }
-        });
+        });        
     }
 
     private void appendToChatArea(String message, boolean sent) {
@@ -319,7 +322,7 @@ public class CantClient extends JFrame implements ActionListener {
                 conversations.get(sender).add(message);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         }
     }
 
@@ -338,4 +341,24 @@ public class CantClient extends JFrame implements ActionListener {
             e.printStackTrace();
         }
     }
+
+    private void sendDisconnectMessage() {
+        System.out.println("disconnecting");
+        if (socket != null && !socket.isClosed()) {
+            try {
+                out.println("DISCONNECT"); // Send a disconnect message to the server
+                socket.close(); // Close the socket
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void dispose() {
+        System.out.println("disposing");
+        sendDisconnectMessage(); // Send a disconnect message when the client window is closed
+        super.dispose();
+    }
+
 }
