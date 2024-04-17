@@ -3,7 +3,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.HashMap;
 import javax.swing.Timer;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class LoginGUI extends JFrame {
     private JTextField usernameField;
@@ -145,6 +146,58 @@ public class LoginGUI extends JFrame {
     public Boolean getSuccess(){ 
         return success;
     }
+
+    /**
+     * Users must be alphanumeric chars ONLY. No Spaces
+     */
+    public static boolean validUsername(String username){
+        // Empty Username is not allowed
+        if (username == ""){
+            return false;
+        }
+
+        // Regex to check for non alphanumeric chars
+        String patternString = "\\W";
+            
+        // Compile the regular expression pattern
+        Pattern pattern = Pattern.compile(patternString);
+
+        // Create a matcher object
+        Matcher matcher = pattern.matcher(username);
+
+        // Check if there is 1 match
+        if (matcher.find()){
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * Enfore password strength requirements here:
+     * Must be 8 chars long
+     * Must have a number
+     */
+    public static boolean validPassword(String password){
+        if (password.length() < 8){
+            return false;
+        }
+        String patternString = "\\d";
+            
+        // Compile the regular expression pattern
+        Pattern pattern = Pattern.compile(patternString);
+
+        // Create a matcher object
+        Matcher matcher = pattern.matcher(password);
+
+        // Check if there is 1 match
+        if (matcher.find()){
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
     // Delete this
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
