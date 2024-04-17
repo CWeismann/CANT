@@ -57,24 +57,24 @@ public class LoginGUI extends JFrame {
                 password = new String(passwordField.getPassword());
 
                 // Check if the username exists in the dictionary and if the password matches
-                if (true/*databaseManager.checkCredentials(username, password)*/) {
-                    messageLabel.setText("Login Successful!");
-                    success = true; 
-                    try {
-                        Thread.sleep(1000); // Sleep for 1 second
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
-                    }
+                // if (true/*databaseManager.checkCredentials(username, password)*/) {
+                //     messageLabel.setText("Login Successful!");
+                //     success = true; 
+                //     try {
+                //         Thread.sleep(1000); // Sleep for 1 second
+                //     } catch (InterruptedException ex) {
+                //         ex.printStackTrace();
+                //     }
 
-                    SwingUtilities.invokeLater(() -> {
-                        new CantClient("user1", "user2", false); 
-                    });
-                    // /setVisible(false);
-                    dispose(); // Close the login page
-                    // open chat? 
-                } else {
-                    messageLabel.setText("Invalid username or password!");
-                }
+                //     SwingUtilities.invokeLater(() -> {
+                //         new CantClient("user1", "user2", false); 
+                //     });
+                //     // /setVisible(false);
+                //     dispose(); // Close the login page
+                //     // open chat? 
+                // } else {
+                //     messageLabel.setText("Invalid username or password!");
+                // }
             }
 
         });
