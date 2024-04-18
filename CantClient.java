@@ -32,7 +32,9 @@ public class CantClient extends JFrame implements ActionListener {
      public CantClient() throws IOException{ //String username, String password, boolean newUser) {
         
         socket = connectToServer();
-        loginGUI();
+        SwingUtilities.invokeLater(() -> {
+            loginGUI();
+        });
         
         // socket.close();
             
@@ -177,12 +179,12 @@ public class CantClient extends JFrame implements ActionListener {
                 startLogin(false);
                 
                 if (authenticated){
-                    loginFrame.dispose(); // Close the login GUI
+                    // Close the login GUI
 
                     System.out.println("starting client");
                     clientGUI(); 
-                    // SwingUtilities.invokeLater(() -> {                
                     startClient();
+                
                 }
                 // dispose(); 
 
@@ -192,17 +194,45 @@ public class CantClient extends JFrame implements ActionListener {
 
         registerButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                clientName  = usernameField.getText();
-                clientpw = new String(passwordField.getPassword());
-                startLogin(true);
+                // Create a new pop-up dialog for registration
+                JDialog registrationDialog = new JDialog(loginFrame, "Register", true);
+                registrationDialog.setSize(300, 200);
+                registrationDialog.setLayout(new GridLayout(4, 2));
 
-                System.out.println("New Username: " + clientName);
-                System.out.println("New Password: " + clientpw);
+                JLabel nameLabel = new JLabel("Username:");
+                JTextField nameField = new JTextField();
+                JLabel pwLabel = new JLabel("Password:");
+                JPasswordField pwField = new JPasswordField();
+                JButton submitButton = new JButton("Submit");
 
-                // Close the dialog
-                // dispose();
+                registrationDialog.add(nameLabel);
+                registrationDialog.add(nameField);
+                registrationDialog.add(pwLabel);
+                registrationDialog.add(pwField);
+                registrationDialog.add(new JLabel("")); // Placeholder for layout
+                registrationDialog.add(submitButton);
+
+                submitButton.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        clientName = nameField.getText();
+                        clientpw = new String(pwField.getPassword());
+                        startLogin(true);
+                        
+                        if (registeredUser){
+                            registrationDialog.dispose(); 
+                            System.out.println("New Username: " + clientName);
+                            System.out.println("New Password: " + clientpw);
+
+                        }
+                        
+                        
+                    }
+                });
+
+                registrationDialog.setLocationRelativeTo(loginFrame);
+                registrationDialog.setVisible(true);
             }
-            });
+        });
 
         loginFrame.add(panel);
         loginFrame.setLocationRelativeTo(null); // Center the window
@@ -237,6 +267,7 @@ public class CantClient extends JFrame implements ActionListener {
                                 case 0:
                                     authenticated = true;
                                     messageLabel.setText("User Authenticated");
+                                    loginFrame.dispose(); 
                                     // setVisible(false); 
                                     //dispose(); 
                                     //.setVisible(false);
@@ -245,7 +276,9 @@ public class CantClient extends JFrame implements ActionListener {
                                 case 1:
                                     messageLabel.setText("Sucessfully Registered New User. Please login again");
                                     registeredUser = true; 
-                                    socket.close();
+                                    //registrationDialog.dispose();
+
+                                    //socket.close();
                                     return;
 
                                     // System.exit(0);    
@@ -470,4 +503,5 @@ public class CantClient extends JFrame implements ActionListener {
 
 
 }
+
 

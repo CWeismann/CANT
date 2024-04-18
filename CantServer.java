@@ -109,20 +109,20 @@ public class CantServer extends JFrame {
         private String clientId;
         private String username;
 
-        public ClientHandler(SSLSocket clientSocket) {
+        public ClientHandler(SSLSocket clientSocket) throws IOException {
             this.clientSocket = clientSocket;
             try {
+                System.out.println("CLIENTHANDLER");
+
                 out = new PrintWriter(clientSocket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 clientId = "Client" + System.currentTimeMillis(); // Assign unique client ID
                 username = clientId;
             } catch (IOException e) {
+                System.out.println("error");
+
                 e.printStackTrace();
-                try {
-                    clientSocket.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
+                clientSocket.close();
             }
             broadcastClientList();
         }
@@ -143,10 +143,12 @@ public class CantServer extends JFrame {
         @Override
         public void run() {
             try {
-                String message;
-                while ((message = in.readLine()) != null) {
+                String message = in.readLine();
+                System.out.println("message = " + message);
+                while (message != null) {
                     String[] parts = message.split(":", 4); // Split message into recipient and content
                     if (parts.length == 1) {
+                        System.out.println("CLOSING IN HANDLER");
                         in.close();
                         out.close();
                         clientSocket.close();
