@@ -9,6 +9,8 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CantClient extends JFrame implements ActionListener {
     private JTextArea chatArea;
@@ -276,9 +278,12 @@ public class CantClient extends JFrame implements ActionListener {
             CantClient c = new CantClient(args[0], args[1], false);
         });
         } else if (args.length == 3){
-        SwingUtilities.invokeLater(() -> {
+            if (validUsername(args[0]) && validPassword(args[1])){
+            SwingUtilities.invokeLater(() -> {
             CantClient c = new CantClient(args[0], args[1], true);
         });
+            }
+        
         } else { // Invalid Input
             System.exit(1);
         }
@@ -361,4 +366,63 @@ public class CantClient extends JFrame implements ActionListener {
         super.dispose();
     }
 
+    /**
+     * Users must be alphanumeric chars ONLY. No Spaces
+     */
+    public static boolean validUsername(String username){
+        // Empty Username is not allowed
+        if (username == ""){
+            return false;
+        }
+
+        // Regex to check for non alphanumeric chars
+        String patternString = "\\W";
+            
+        // Compile the regular expression pattern
+        Pattern pattern = Pattern.compile(patternString);
+
+        // Create a matcher object
+        Matcher matcher = pattern.matcher(username);
+
+        // Check if there is 1 match
+        if (matcher.find()){
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * Enfore password strength requirements here:
+     * Must be 8 chars long
+     * Must have a number
+     */
+    public static boolean validPassword(String password){
+        if (password.length() < 8){
+            System.out.println("Invalid Password: Password must be 8+ characters");
+            return false;
+        }
+        String patternString = "\\d";
+        String noColon = ".*:.*";
+            
+        // Compile the regular expression pattern
+        Pattern pattern = Pattern.compile(patternString);
+        Pattern colonPattern = Pattern.compile(patternString);
+
+        // Create a matcher object
+        Matcher matcher = pattern.matcher(password);
+        Matcher colonMatcher = colonPattern.matcher(password);
+
+        // Check if there is 1 match for a number
+        if (matcher.find()){
+            if(password.matches(noColon)){
+                System.out.println("Invalid Password. No colons allowed");
+                return false;
+            }
+            return true;
+        } else {
+            System.out.println("Invalid Password: Must contain a number");
+            return false;
+        }
+    }
 }
