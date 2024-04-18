@@ -27,11 +27,12 @@ public class CantClient extends JFrame implements ActionListener {
     private SSLSocket socket;
     private JLabel messageLabel; 
 
+    private JFrame loginFrame; // Added for managing the login GUI window
 
      public CantClient() throws IOException{ //String username, String password, boolean newUser) {
         
         socket = connectToServer();
-        JPanel s = loginGUI();
+        loginGUI();
         
         // socket.close();
             
@@ -130,11 +131,11 @@ public class CantClient extends JFrame implements ActionListener {
 
     public JPanel loginGUI(){ 
         
-        setTitle("Login Page");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(350, 200);
-        setResizable(false);
-        setLocationRelativeTo(null); // Center the window
+        loginFrame = new JFrame("Login Page");
+        loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        loginFrame.setSize(350, 200);
+        loginFrame.setResizable(false);
+        loginFrame.setLocationRelativeTo(null); // Center the window
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
@@ -176,7 +177,7 @@ public class CantClient extends JFrame implements ActionListener {
                 startLogin(false);
                 
                 if (authenticated){
-                    dispose(); 
+                    loginFrame.dispose(); // Close the login GUI
 
                     System.out.println("starting client");
                     clientGUI(); 
@@ -203,9 +204,9 @@ public class CantClient extends JFrame implements ActionListener {
             }
             });
 
-        add(panel);
-        setLocationRelativeTo(null); // Center the window
-        setVisible(true);
+        loginFrame.add(panel);
+        loginFrame.setLocationRelativeTo(null); // Center the window
+        loginFrame.setVisible(true);
         // return success;
         return panel;
     }
@@ -226,7 +227,7 @@ public class CantClient extends JFrame implements ActionListener {
                     String message;
                     while ((message = in.readLine()) != null) {
                         if (message.startsWith("Login:")){
-                            // 3 cases: 
+                             // 3 cases: 
                             // 0: Successful login
                             // 1: Successful registration
                             // 2: Unsuccessful login
