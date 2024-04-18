@@ -23,14 +23,32 @@ public class CantClient extends JFrame implements ActionListener {
     private boolean authenticated;
     private String clientName; 
     private String clientpw;
-    private boolean registerUser;
+    private boolean registeredUser = false;
+    private SSLSocket socket;
+    private JLabel messageLabel; 
+
+    private JFrame loginFrame; // Added for managing the login GUI window
+
+     public CantClient() throws IOException{ //String username, String password, boolean newUser) {
+        
+        socket = connectToServer();
+        SwingUtilities.invokeLater(() -> {
+            loginGUI();
+        });
+        
+        // socket.close();
+            
+        // ClientName = loginScreen.getUser();
+        
+    }
+
+    public void clientGUI(){ 
 
 
-    public CantClient(String username, String password, boolean newUser) {
         clientID = generateClientId();
-        setTitle("CANT Client: " + username);
+        setTitle("CANT Client: " + clientName);
         setSize(400, 300);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         conversations = new HashMap<>();
         currentRecipient = null;
 
@@ -73,22 +91,20 @@ public class CantClient extends JFrame implements ActionListener {
                 handleDropdownSelectionChange(selectedRecipient);
             }
         });
-        authenticated = false;
-        clientName = username;
-        clientpw = password;
-        registerUser = newUser;
+        // authenticated = false;
+        // authenticated = true; //temporary
+        // clientName = username;
+        // clientpw = password;
+        // registerUser = newUser;
 
         loadConversationsFromFile();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             saveConversationsToFile();
         }));
         
-        setVisible(true);
+        setVisible(true); 
         // loginScreen = new LoginGUI();
-        startLogin();
-        startClient();
-        // ClientName = loginScreen.getUser();
-        
+        // startLogin();
     }
 
 
@@ -115,13 +131,122 @@ public class CantClient extends JFrame implements ActionListener {
 
     }
 
-    private void startLogin(){
+    public JPanel loginGUI(){ 
+        
+        loginFrame = new JFrame("Login Page");
+        loginFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        loginFrame.setSize(350, 200);
+        loginFrame.setResizable(false);
+        loginFrame.setLocationRelativeTo(null); // Center the window
 
-        try {
-            SSLSocket socket = connectToServer();
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JPanel inputPanel = new JPanel(new GridLayout(3, 1, 5, 5));
+
+        JLabel usernameLabel = new JLabel("Username:");
+        JTextField usernameField = new JTextField();
+        JLabel passwordLabel = new JLabel("Password:");
+        JPasswordField passwordField = new JPasswordField();
+
+        JButton loginButton = new JButton("Login");
+        JButton registerButton = new JButton("Register");
+
+        inputPanel.add(usernameLabel);
+        inputPanel.add(usernameField);
+        inputPanel.add(passwordLabel);
+        inputPanel.add(passwordField);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.add(loginButton);
+        buttonPanel.add(registerButton);
+
+        panel.add(inputPanel, BorderLayout.CENTER);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+
+        messageLabel = new JLabel("");
+        messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(messageLabel, BorderLayout.NORTH);
+
+        loginButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+
+                clientName = usernameField.getText();
+                clientpw = new String(passwordField.getPassword());
+                if (socket.isClosed()){
+                    socket = connectToServer();
+                }
+                startLogin(false);
+                
+                if (authenticated){
+                    // Close the login GUI
+
+                    System.out.println("starting client");
+                    clientGUI(); 
+                    startClient();
+                
+                }
+                // dispose(); 
+
+            }
+
+        });
+
+        registerButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Create a new pop-up dialog for registration
+                JDialog registrationDialog = new JDialog(loginFrame, "Register", true);
+                registrationDialog.setSize(300, 200);
+                registrationDialog.setLayout(new GridLayout(4, 2));
+
+                JLabel nameLabel = new JLabel("Username:");
+                JTextField nameField = new JTextField();
+                JLabel pwLabel = new JLabel("Password:");
+                JPasswordField pwField = new JPasswordField();
+                JButton submitButton = new JButton("Submit");
+
+                registrationDialog.add(nameLabel);
+                registrationDialog.add(nameField);
+                registrationDialog.add(pwLabel);
+                registrationDialog.add(pwField);
+                registrationDialog.add(new JLabel("")); // Placeholder for layout
+                registrationDialog.add(submitButton);
+
+                submitButton.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        clientName = nameField.getText();
+                        clientpw = new String(pwField.getPassword());
+                        startLogin(true);
+                        
+                        if (registeredUser){
+                            registrationDialog.dispose(); 
+                            System.out.println("New Username: " + clientName);
+                            System.out.println("New Password: " + clientpw);
+
+                        }
+                        
+                        
+                    }
+                });
+
+                registrationDialog.setLocationRelativeTo(loginFrame);
+                registrationDialog.setVisible(true);
+            }
+        });
+
+        loginFrame.add(panel);
+        loginFrame.setLocationRelativeTo(null); // Center the window
+        loginFrame.setVisible(true);
+        // return success;
+        return panel;
+    }
+
+    private void startLogin(Boolean reg){
+       
+        try {   
             out = new PrintWriter(socket.getOutputStream(), true);
-            if (registerUser){
-                out.println(clientName + ":" + clientpw + ":" + "register");
+            if (reg){
+                out.println(clientName + ":" + clientpw + ":register");
             } else{
                 out.println(clientName + ":" + clientpw + ":login");
             }
@@ -132,7 +257,7 @@ public class CantClient extends JFrame implements ActionListener {
                     String message;
                     while ((message = in.readLine()) != null) {
                         if (message.startsWith("Login:")){
-                            // 3 cases: 
+                             // 3 cases: 
                             // 0: Successful login
                             // 1: Successful registration
                             // 2: Unsuccessful login
@@ -141,20 +266,33 @@ public class CantClient extends JFrame implements ActionListener {
                             switch(loginCode){
                                 case 0:
                                     authenticated = true;
-                                    System.out.println("User Authenticated");
+                                    messageLabel.setText("User Authenticated");
+                                    loginFrame.dispose(); 
+                                    // setVisible(false); 
+                                    //dispose(); 
+                                    //.setVisible(false);
+                                    // socket.close(); 
                                     return;
                                 case 1:
-                                    System.out.println("Sucessfully Registered New User. Please login again");
-                                    socket.close();
-                                    System.exit(0);    
+                                    messageLabel.setText("Sucessfully Registered New User. Please login again");
+                                    registeredUser = true; 
+                                    //registrationDialog.dispose();
+
+                                    //socket.close();
+                                    return;
+
+                                    // System.exit(0);    
                                 case 2:  
-                                    System.out.println("Incorrect Password. Please login again");
+                                    messageLabel.setText("Incorrect Password. Please login again");
                                     socket.close();
-                                    System.exit(0);  
+                                    // System.exit(0);  
+                                    return;
                                 case 3:
-                                    System.out.println("Registration Error. Username already taken");
+                                    messageLabel.setText("Registration Error. Username already taken");
                                     socket.close();
-                                    System.exit(0);  
+                                    return;
+
+                                    // System.exit(0);  
                             }
                         }
                     }
@@ -171,38 +309,36 @@ public class CantClient extends JFrame implements ActionListener {
 
 
     private void startClient() {
-        SSLSocket socket = connectToServer();
-        try{
-            out = new PrintWriter(socket.getOutputStream(), true);
-
-            // Read incoming messages in a separate thread to avoid blocking the EDT
-            new Thread(() -> {
-                try {
-                    // receive messages
-                    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    String message;
-                    while ((message = in.readLine()) != null) {
-                        if (message.startsWith("CLIENT_LIST:")) {
-                            updateClientDropdown(message.substring("CLIENT_LIST:".length()).split(","));
-                        } else {
-                            String sender = message.split(": ",2)[0];
-                            if (!conversations.containsKey(sender))
-                                conversations.put(sender, new ArrayList<String>());
-                            conversations.get(sender).add(message);
-                            if (sender.equals(currentRecipient))
-                                appendToChatArea(message, false);
-                        }
+        // Read incoming messages in a separate thread to avoid blocking the EDT
+        new Thread(() -> {
+            try {
+                // receive messages
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                String message;
+                while ((message = in.readLine()) != null) {
+                    if (message.startsWith("CLIENT_LIST:")) {
+                        updateClientDropdown(message.substring("CLIENT_LIST:".length()).split(","));
+                    } else {
+                        String sender = message.split(": ",2)[0];
+                        if (!conversations.containsKey(sender))
+                            conversations.put(sender, new ArrayList<String>());
+                        conversations.get(sender).add(message);
+                        if (sender.equals(currentRecipient))
+                            appendToChatArea(message, false);
                     }
-                    
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
-            }).start();
-        } catch (IOException e){
-            e.printStackTrace();
-        }
+                
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+        // } catch (IOException e){
+        //     e.printStackTrace();
+        // }
 
     }
+
+    
 
     public void actionPerformed(ActionEvent e) {
         // send messages
@@ -238,7 +374,7 @@ public class CantClient extends JFrame implements ActionListener {
             for (String client : clients) {
                 clientDropdown.addItem(client);
             }
-        });
+        });        
     }
 
     private void appendToChatArea(String message, boolean sent) {
@@ -267,18 +403,23 @@ public class CantClient extends JFrame implements ActionListener {
     }
     
     public static void main(String[] args) {
-        if (args.length == 2){
-            // username and password
-            SwingUtilities.invokeLater(() -> {
-            CantClient c = new CantClient(args[0], args[1], false);
-        });
-        } else if (args.length == 3){
+        // if (args.length == 2){
+        //     // username and password
+        //     SwingUtilities.invokeLater(() -> {
+        //     CantClient c = new CantClient(args[0], args[1], false);
+        // });
+        // } else if (args.length == 3){
         SwingUtilities.invokeLater(() -> {
-            CantClient c = new CantClient(args[0], args[1], true);
+            try {
+                CantClient c = new CantClient();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }//args[0], args[1], true);
         });
-        } else { // Invalid Input
-            System.exit(1);
-        }
+        // } else { // Invalid Input
+        //     System.exit(1);
+        // }
         
 
     }
@@ -319,7 +460,7 @@ public class CantClient extends JFrame implements ActionListener {
                 conversations.get(sender).add(message);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         }
     }
 
@@ -338,4 +479,29 @@ public class CantClient extends JFrame implements ActionListener {
             e.printStackTrace();
         }
     }
+
+    private void sendDisconnectMessage() {
+        System.out.println("disconnecting");
+        if (socket != null && !socket.isClosed()) {
+            try {
+                out.println("DISCONNECT"); // Send a disconnect message to the server
+                socket.close(); // Close the socket
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // @Override
+    
+    public void dispose1() {
+        System.out.println("disposing");
+        sendDisconnectMessage(); // Send a disconnect message when the client window is closed
+        super.dispose();
+    }
+
+
+
 }
+
+
