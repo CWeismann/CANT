@@ -17,22 +17,9 @@ JFLAGS = -d $(OUTDIR)
 all: $(SOURCES)
 	$(JAVAC) $(JFLAGS) $(SOURCES)
 
-run_server:
-	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" CantServer
-
-connect:
-	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" CantClient $(USER) $(PASS) 
-
-register:
-	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" CantClient $(USER) $(PASS) 1
-
-
-run_login: # delete this
-	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" LoginGUI
-
 # Define target for cleaning up generated .class files
 clean:
 	find $(OUTDIR) -name '*.class' -delete
 	find $(OUTDIR) -name '*.db' -delete
-	find $(OUTDIR) -name '*_conversations.txt' -delete
+	find $(OUTDIR) -name '*_messages.txt' -delete
 .PHONY: all clean
