@@ -12,7 +12,11 @@ public class Server {
     private static final String TRUSTSTORE_PASSWORD = "serverpassword";
 
     private static Map<String, PrintWriter> clients = new HashMap<>();
-    private static Map<String, Password> users = new HashMap<>();
+
+    // Databases and audit logger
+    private static LoginDBManager loginDB = new LoginDBManager();
+    private static MessageDBManager messageDB = new MessageDBManager();
+    private static AuditLogManager auditLogger = new AuditLogManager();
 
     public static void main(String[] args) {
         try {
@@ -92,17 +96,18 @@ public class Server {
 
         private boolean login() throws IOException {
             String username = reader.readLine();
-            Password storedPassword = users.get(username);
-            String hashedPassword = Password.hashPassword(reader.readLine(), storedPassword.getSalt());
+            String pw = reader.readLine();
 
             // Check if the user exists and the password matches
-            if (users.containsKey(username) && storedPassword.getHashedPassword().equals(hashedPassword)) {
+            if (loginDB.checkCredentials(username, pw)) {
                 this.username = username;
                 clients.put(username, writer);
                 writer.println("LOGIN_SUCCESS");
+                auditLogger.addLoginAttempt(username, true);
                 return true;
             } else {
                 writer.println("LOGIN_FAILED");
+                auditLogger.addLoginAttempt(username, false);
                 return false;
             }
         }
@@ -114,14 +119,15 @@ public class Server {
             String password = reader.readLine();
         
             // Check if the username is available
-            if (!users.containsKey(username)) {
-                Password hashedPassword = new Password(password);
-                users.put(username, hashedPassword);
+            System.out.println("Registering user");
+            if (loginDB.registerUser(username, password)){
                 writer.println("REGISTRATION_SUCCESS");
+                auditLogger.addRegistrationAttempt(username, true);
                 return true;
             } else {
                 writer.println("REGISTRATION_FAILED");
-                return false;
+                auditLogger.addRegistrationAttempt(username, false);
+                return false;     
             }
         }
 
@@ -186,12 +192,16 @@ public class Server {
                         String recipient = message.substring(1, spaceIndex);
                         String directMessage = message.substring(spaceIndex + 1);
                         sendMessage(username, recipient, directMessage);
+                        // Send to Database
+                        messageDB.addToMessageDB(username, recipient, directMessage);
                     } else {
                         writer.println("Invalid direct message format. Use '@username message'");
                     }
                 } else {
                     // Broadcast message
                     broadcastMessage(username + ": " + message);
+                    messageDB.addToMessageDB(username, "GLOBAL", message);
+
                 }
             }
         }

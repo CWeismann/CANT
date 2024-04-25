@@ -18,21 +18,16 @@ all: $(SOURCES)
 	$(JAVAC) $(JFLAGS) $(SOURCES)
 
 run_server:
-	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" CantServer
+	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" Server
 
-connect:
-	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" CantClient $(USER) $(PASS) 
-
-register:
-	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" CantClient $(USER) $(PASS) 1
-
-
-run_client: # delete this
-	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" CantClient
+run_client: # Maybe not need the DB? 
+	java Client 
 
 # Define target for cleaning up generated .class files
 clean:
 	find $(OUTDIR) -name '*.class' -delete
 	find $(OUTDIR) -name '*.db' -delete
 	find $(OUTDIR) -name '*_messages.txt' -delete
+	find $(OUTDIR) -name '*.log' -delete
+	
 .PHONY: all clean
