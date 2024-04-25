@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 public class Client {
     private static final String SERVER_HOST = "localhost";
     private static final int SERVER_PORT = 12345;
-    private static final String TRUSTSTORE_LOCATION = "client_truststore.jks";
+    private static final String TRUSTSTORE_LOCATION = "certificates/client_truststore.jks";
     private static final String TRUSTSTORE_PASSWORD = "clientpassword";
 
     // chat frame

@@ -43,7 +43,7 @@ class AuditLogManager{
     public void addLoginAttempt(String username, Boolean success){
 
 
-        String dateTime = getTime()
+        String dateTime = getTime();
         int statusCode = getStatusCode(200, 401, success);
         String loginReq = String.format("Login Attempt: User=%s",username);
 
@@ -69,8 +69,8 @@ class AuditLogManager{
     public void addPasswordReset(String username, Boolean success){
 
         String dateTime = getTime();
-
         int statusCode = getStatusCode(200, 401, success);
+
         String regReq = String.format("Password Reset Attempt: User=%s",username);
         String logMessage = String.format("%s - %s [%s] \"%s\" %d -", this.host, this.remoteUser, dateTime, regReq, statusCode);
         

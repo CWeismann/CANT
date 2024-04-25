@@ -1,0 +1,8 @@
+# Class files
+*.class
+
+# Logs
+*.log
+
+# Databases
+*.db

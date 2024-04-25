@@ -6,9 +6,10 @@ import java.util.*;
 
 public class Server {
     private static final int PORT = 12345;
-    private static final String KEYSTORE_LOCATION = "server_keystore.jks";
+    private static final String CERTIFICATE_DIRECTORY = "certificates/";
+    private static final String KEYSTORE_LOCATION = CERTIFICATE_DIRECTORY + "server_keystore.jks";
     private static final String KEYSTORE_PASSWORD = "serverpassword";
-    private static final String TRUSTSTORE_LOCATION = "server_truststore.jks";
+    private static final String TRUSTSTORE_LOCATION =  CERTIFICATE_DIRECTORY + "server_truststore.jks";
     private static final String TRUSTSTORE_PASSWORD = "serverpassword";
 
     private static Map<String, PrintWriter> clients = new HashMap<>();
@@ -119,7 +120,6 @@ public class Server {
             String password = reader.readLine();
         
             // Check if the username is available
-            System.out.println("Registering user");
             if (loginDB.registerUser(username, password)){
                 writer.println("REGISTRATION_SUCCESS");
                 auditLogger.addRegistrationAttempt(username, true);
@@ -134,8 +134,8 @@ public class Server {
         private void forgotPassword() throws IOException {
             // doesn't work yet but looks cool
             String username = reader.readLine();
-        
-            if (users.containsKey(username)) {
+
+            if (loginDB.registeredUsername(username)) {
                 String smtpServer = "your_smtp_server";
                 int port = 25; // Default SMTP port
 
