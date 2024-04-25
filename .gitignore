@@ -6,3 +6,6 @@
 
 # Databases
 *.db
+
+# messages
+*_messages.txt

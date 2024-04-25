@@ -4,8 +4,8 @@ cant (noun):
 1. An argot, the jargon of a particular class or subgroup.
 2. A secure messaging app.
 
-Build: make all
-Run Server: java Server
-Run Client: java Client
+Build: make
+Run Server: make run_server
+Run Client: make run_client
 Public Messages: message
 Direct Messages: @username message

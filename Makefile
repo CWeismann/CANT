@@ -26,7 +26,7 @@ run_client: # Maybe not need the DB?
 # Define target for cleaning up generated .class files. Logs are not in target or log directory yet...
 clean:
 	find $(OUTDIR) -name '*.class' -delete
-	find $(OUTDIR) -name '*_messages.txt' -delete
+	find . -name '*_messages.txt' -delete
 	find . -name '*.log' -delete
 	find . -name '*.db' -delete	
 
