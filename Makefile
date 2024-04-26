@@ -2,13 +2,13 @@
 JAVAC = javac
 
 # Define Java source directory
-SRCDIR = .
+SRCDIR = ./src
 
 # Define Java source files
 SOURCES := $(shell find $(SRCDIR) -name '*.java')
 
 # Define output directory
-OUTDIR = .
+OUTDIR = ./target
 
 # Define Java flags
 JFLAGS = -d $(OUTDIR) 
@@ -18,21 +18,16 @@ all: $(SOURCES)
 	$(JAVAC) $(JFLAGS) $(SOURCES)
 
 run_server:
-	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" CantServer
+	java -classpath ".:dbDrivers/sqlite-jdbc-3.45.1.0.jar:dbDrivers/slf4j-api-1.7.36.jar:$(OUTDIR)" Server
 
-connect:
-	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" CantClient $(USER) $(PASS) 
+run_client: # Maybe not need the DB? 
+	java -classpath ".:$(OUTDIR)" Client
 
-register:
-	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" CantClient $(USER) $(PASS) 1
-
-
-run_login: # delete this
-	java -classpath ".:sqlite-jdbc-3.45.1.0.jar:slf4j-api-1.7.36.jar" LoginGUI
-
-# Define target for cleaning up generated .class files
+# Define target for cleaning up generated .class files. Logs are not in target or log directory yet...
 clean:
 	find $(OUTDIR) -name '*.class' -delete
-	find $(OUTDIR) -name '*.db' -delete
-	find $(OUTDIR) -name '*_conversations.txt' -delete
+	find . -name '*_messages.txt' -delete
+	find . -name '*.log' -delete
+	find . -name '*.db' -delete	
+
 .PHONY: all clean

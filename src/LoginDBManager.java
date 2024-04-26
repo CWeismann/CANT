@@ -49,8 +49,9 @@ class LoginDBManager{
 
     /**
      * Returns boolean if the login was a success or not
+     * TODO: Fix code duplication in registeruser and registeredUsername
      */
-    public boolean addLoginCredentials(String username, String password){
+    public boolean registerUser(String username, String password){
         String checkInDB = "SELECT COUNT(1) AS count FROM login WHERE username='" + username +"'";
         
         String sql = "INSERT INTO login (id, username, password, salt, timestamp, valid) VALUES (?,?,?,?,?,?)";
@@ -88,6 +89,31 @@ class LoginDBManager{
             return false;
         }
         return true;
+    }
+
+    public boolean registeredUsername(String username){
+        String checkInDB = "SELECT COUNT(1) AS count FROM login WHERE username='" + username +"'";
+        
+        try  (
+            // create a database connection
+            Connection connection = DriverManager.getConnection("jdbc:sqlite:login.db");
+            Statement stmt = connection.createStatement();
+
+        ) {
+            ResultSet countSet = stmt.executeQuery(checkInDB);
+            int numAppearances = 0;
+            if (countSet.next()){
+                numAppearances = countSet.getInt("count");
+            }
+            if (numAppearances > 0){
+                return true;
+            }
+            
+        } catch (SQLException e) {
+            System.out.println("Failed to check if user exists: " + e.getMessage());
+            return false;
+        }
+        return false;
     }
 
 
@@ -142,7 +168,7 @@ class LoginDBManager{
             }
             
             String hash = hexString.toString();
-            System.out.println("SHA-256 hash: " + hash);
+            // System.out.println("SHA-256 hash: " + hash);
             return hash;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
