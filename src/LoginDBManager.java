@@ -48,7 +48,6 @@ class LoginDBManager{
 
     /**
      * Returns boolean if the login was a success or not
-     * TODO: Fix code duplication in registeruser and registeredUsername
      */
     public boolean registerUser(String username, String password){
         
@@ -86,6 +85,9 @@ class LoginDBManager{
         return true;
     }
 
+    /**
+     * Checks if a username is registered in the database
+     */
     public boolean registeredUsername(String usr){
         String sql = "SELECT COUNT(1) AS count FROM login WHERE username = ?";
         try  (
@@ -109,11 +111,11 @@ class LoginDBManager{
         }
     }
 
-
+    /**
+     * Checks if a username and password are correct
+     */
     public boolean checkCredentials(String username, String password){
-        /**
-         * Checks if the username and pw are correct
-         */
+
         String sql = "SELECT * FROM login WHERE username='" + username +"'";
         try  (
             // create a database connection
@@ -140,8 +142,10 @@ class LoginDBManager{
     
     }
 
-
-    public String hashPassword(String password, int salt ){
+    /**
+     * Hashes a password with the given salt
+     */
+    private String hashPassword(String password, int salt ){
         try {
             // Create MessageDigest instance for SHA-256
             String inputStr = password + Integer.toString(salt);

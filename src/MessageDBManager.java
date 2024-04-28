@@ -12,10 +12,13 @@ import java.sql.PreparedStatement;
 // Timestamp
 import java.time.LocalDateTime;
 
+// Hashing
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 class MessageDBManager {
 
     private int numMessages;
-    // private final hash_function = hash function
 
     public MessageDBManager(){
 
@@ -47,6 +50,9 @@ class MessageDBManager {
 
     }
     
+    /**
+     * Adds a message to the messag DB
+     */
     public void addToMessageDB(String sender, String recipient, String msg){
         String sql = "INSERT INTO messages (id, sender, recipient, timestamp, msg, visible) VALUES (?,?,?,?,?,?)";
         try  (
@@ -59,7 +65,7 @@ class MessageDBManager {
             ps.setString(2, sender);
             ps.setString(3, recipient);
             ps.setString(4, timestamp);
-            ps.setString(5, msg);
+            ps.setString(5, hashMessage(msg));
             ps.setInt(6,1);
 
             // Execute update to the db
@@ -70,4 +76,32 @@ class MessageDBManager {
         }
     }
 
+    /**
+     * Hashes a message to hide the contents. 
+     */
+    private String hashMessage(String msg){
+    try {
+            // Create MessageDigest instance for SHA-256
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            
+            // Perform the hash computation
+            byte[] hashBytes = digest.digest(msg.getBytes());
+            
+            // Convert byte array to hexadecimal string
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hashBytes) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            
+            String hash = hexString.toString();
+            return hash;
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 } 
