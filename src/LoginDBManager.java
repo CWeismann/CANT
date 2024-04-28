@@ -8,7 +8,6 @@ import java.sql.Statement;
 import java.io.File;
 import java.io.IOException;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 
 import java.security.MessageDigest; // sha256
 import java.security.NoSuchAlgorithmException;
@@ -52,10 +51,14 @@ class LoginDBManager{
      * TODO: Fix code duplication in registeruser and registeredUsername
      */
     public boolean registerUser(String username, String password){
-        String checkInDB = "SELECT COUNT(1) AS count FROM login WHERE username='" + username +"'";
         
-        String sql = "INSERT INTO login (id, username, password, salt, timestamp, valid) VALUES (?,?,?,?,?,?)";
+        // Check if username taken
+        if (registeredUsername(username)){
+            return false;
+        }
 
+        // Register new user
+        String sql = "INSERT INTO login (id, username, password, salt, timestamp, valid) VALUES (?,?,?,?,?,?)";
         try  (
             // create a database connection
             Connection connection = DriverManager.getConnection("jdbc:sqlite:login.db");
@@ -63,14 +66,6 @@ class LoginDBManager{
             Statement stmt = connection.createStatement();
 
         ) {
-            ResultSet countSet = stmt.executeQuery(checkInDB);
-            int numAppearances = 0;
-            if (countSet.next()){
-                numAppearances = countSet.getInt("count");
-            }
-            if (numAppearances > 0){
-                return false;
-            }
             String timestamp = LocalDateTime.now().toString();
             int salt = this.rng.nextInt(2147483647);
             String hashedPw = hashPassword(password, salt);
@@ -91,29 +86,27 @@ class LoginDBManager{
         return true;
     }
 
-    public boolean registeredUsername(String username){
-        String checkInDB = "SELECT COUNT(1) AS count FROM login WHERE username='" + username +"'";
-        
+    public boolean registeredUsername(String usr){
+        String sql = "SELECT COUNT(1) AS count FROM login WHERE username = ?";
         try  (
             // create a database connection
             Connection connection = DriverManager.getConnection("jdbc:sqlite:login.db");
-            Statement stmt = connection.createStatement();
-
+            PreparedStatement ps = connection.prepareStatement(sql);
         ) {
-            ResultSet countSet = stmt.executeQuery(checkInDB);
+            ps.setString(1, usr);
+
+            ResultSet countSet = ps.executeQuery();
+
             int numAppearances = 0;
             if (countSet.next()){
                 numAppearances = countSet.getInt("count");
             }
-            if (numAppearances > 0){
-                return true;
-            }
-            
+            return (numAppearances > 0);
+        
         } catch (SQLException e) {
             System.out.println("Failed to check if user exists: " + e.getMessage());
             return false;
         }
-        return false;
     }
 
 
@@ -168,11 +161,9 @@ class LoginDBManager{
             }
             
             String hash = hexString.toString();
-            // System.out.println("SHA-256 hash: " + hash);
             return hash;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
-            // throw new NoSuchAlgorithmException("No Sha256 found",e);
             return null;
         }
     }
