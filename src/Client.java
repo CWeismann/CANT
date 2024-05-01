@@ -157,9 +157,10 @@ public class Client {
                 if (spaceIndex != -1) {
                     String recipient = message.substring(1, spaceIndex);
                     String directMessage = message.substring(spaceIndex + 1);
-                    chatArea.append("(Direct to " + recipient + "): " + directMessage + "\n");;
+                    chatArea.append("(Direct to " + recipient + "): " + directMessage + "\n");
                 } else {
-                    writer.println("Invalid direct message format. Use '@username message'");
+                    // writer.println("Invalid direct message format. Use '@username message'");
+                    chatArea.append("Invalid direct message format. Use '@username message'");
                 }
             }
             writer.println(message);
@@ -232,7 +233,7 @@ public class Client {
                 String password = new String(passwordField.getPassword());
                 Pattern pattern = Pattern.compile("\\d");
                 Matcher matcher = pattern.matcher(password);
-                if (isValidEmail(usernameField.getText())) {
+                if (!isValidEmail(usernameField.getText())) {
                     JOptionPane.showMessageDialog(frame, "Username must be a valid email.");
                 } else if (password.length() < 8) {
                     JOptionPane.showMessageDialog(frame, "Password must be eight characters or longer.");
@@ -278,7 +279,7 @@ public class Client {
     };
 
     public static boolean isValidEmail(String email) {
-        String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\n$";
+        String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
         Pattern pattern = Pattern.compile(EMAIL_REGEX);
         Matcher matcher = pattern.matcher(email);
         return matcher.matches();

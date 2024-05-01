@@ -211,7 +211,7 @@ public class Server {
             if (recipientWriter != null) {
                 recipientWriter.println("(Direct from " + sender + "): " + message);
             } else {
-                writer.println("User '" + recipient + "' is not online. Message will be delivered when they are back online.");
+                writer.println("User '" + recipient + "' is not online.");
                 // Save message to be delivered later
                 // Implement message persistence logic here
             }
