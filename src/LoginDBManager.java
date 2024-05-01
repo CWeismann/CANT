@@ -16,9 +16,10 @@ import java.util.Random; // salting
 // Timestamp
 import java.time.LocalDateTime;
 
-class LoginDBManager{
+class LoginDBManager {
     private int numLogins;
     private Random rng;
+    private static final int HASH_COUNT = 10000;
 
     public LoginDBManager() {
         this.numLogins = 0;
@@ -50,7 +51,7 @@ class LoginDBManager{
      * Returns boolean if the login was a success or not
      * TODO: Fix code duplication in registeruser and registeredUsername
      */
-    public boolean registerUser(String username, String password){
+    public boolean registerUser(String username, String password) {
         
         // Check if username taken
         if (registeredUsername(username)){
@@ -86,7 +87,7 @@ class LoginDBManager{
         return true;
     }
 
-    public boolean registeredUsername(String usr){
+    public boolean registeredUsername(String usr) {
         String sql = "SELECT COUNT(1) AS count FROM login WHERE username = ?";
         try  (
             // create a database connection
@@ -110,7 +111,7 @@ class LoginDBManager{
     }
 
 
-    public boolean checkCredentials(String username, String password){
+    public boolean checkCredentials(String username, String password) {
         /**
          * Checks if the username and pw are correct
          */
@@ -141,14 +142,16 @@ class LoginDBManager{
     }
 
 
-    public String hashPassword(String password, int salt ){
+    public String hashPassword(String password, int salt) {
         try {
             // Create MessageDigest instance for SHA-256
             String inputStr = password + Integer.toString(salt);
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             
             // Perform the hash computation
-            byte[] hashBytes = digest.digest(inputStr.getBytes());
+            byte[] hashBytes = inputStr.getBytes();
+            for (int i = 0; i < HASH_COUNT; ++i)
+                hashBytes = digest.digest(hashBytes);
             
             // Convert byte array to hexadecimal string
             StringBuilder hexString = new StringBuilder();
