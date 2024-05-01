@@ -18,6 +18,7 @@ public class Client {
     private JTextArea chatArea;
     private JTextField messageField;
     private JButton sendButton;
+    private JButton clearButton;
     private PrintWriter writer;
     private String username;
 
@@ -90,6 +91,21 @@ public class Client {
         bottomPanel.add(sendButton, BorderLayout.EAST);
     
         panel.add(bottomPanel, BorderLayout.SOUTH);
+
+        clearButton = new JButton("Clear History");
+        clearButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                clearConversationHistory();
+            }
+        });
+        clearButton.setBackground(backgroundColor);
+        clearButton.setForeground(textColor);
+        clearButton.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        JPanel topRightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        topRightPanel.setBackground(backgroundColor);
+        topRightPanel.setForeground(textColor);
+        topRightPanel.add(clearButton);
+        panel.add(topRightPanel, BorderLayout.NORTH);
     
         frame.getContentPane().add(panel);
         frame.setVisible(false);
@@ -283,6 +299,11 @@ public class Client {
         Pattern pattern = Pattern.compile(EMAIL_REGEX);
         Matcher matcher = pattern.matcher(email);
         return matcher.matches();
+    }
+
+    private void clearConversationHistory() {
+        chatArea.setText("");
+        new File(username + "_messages.txt").delete();
     }
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
