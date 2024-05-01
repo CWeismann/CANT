@@ -255,6 +255,8 @@ public class Client {
                     JOptionPane.showMessageDialog(frame, "Password must be eight characters or longer.");
                 } else if (!matcher.find()) {
                     JOptionPane.showMessageDialog(frame, "Password must contain a number.");
+                } else if (isCommonPassword(password)) {
+                    JOptionPane.showMessageDialog(frame, "Password is too common.");
                 } else {
                     writer.println("REGISTER");
                     writer.println(usernameField.getText());
@@ -294,11 +296,25 @@ public class Client {
         }
     };
 
-    public static boolean isValidEmail(String email) {
+    private static boolean isValidEmail(String email) {
         String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
         Pattern pattern = Pattern.compile(EMAIL_REGEX);
         Matcher matcher = pattern.matcher(email);
         return matcher.matches();
+    }
+
+    private static boolean isCommonPassword(String password) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("src/common_passwords.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.equals(password)) {
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private void clearConversationHistory() {
