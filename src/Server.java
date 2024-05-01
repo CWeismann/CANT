@@ -2,6 +2,7 @@ import javax.net.ssl.*;
 import java.io.*;
 import java.net.*;
 import java.security.*;
+import java.security.MessageDigest;
 import java.util.*;
 
 public class Server {
@@ -184,25 +185,31 @@ public class Server {
         
         private void handleMessages() throws IOException {
             String message;
-            while ((message = reader.readLine()) != null) {
-                if (message.startsWith("@")) {
-                    // Direct message
-                    int spaceIndex = message.indexOf(" ");
-                    if (spaceIndex != -1) {
-                        String recipient = message.substring(1, spaceIndex);
-                        String directMessage = message.substring(spaceIndex + 1);
-                        sendMessage(username, recipient, directMessage);
-                        // Send to Database
-                        messageDB.addToMessageDB(username, recipient, directMessage);
+            MessageDigest digest;
+            try {
+                digest = MessageDigest.getInstance("SHA-256");
+                while ((message = reader.readLine()) != null) {
+                    if (message.startsWith("@")) {
+                        // Direct message
+                        int spaceIndex = message.indexOf(" ");
+                        if (spaceIndex != -1) {
+                            String recipient = message.substring(1, spaceIndex);
+                            String directMessage = message.substring(spaceIndex + 1);
+                            sendMessage(username, recipient, directMessage);
+                            // Send to Database
+                            messageDB.addToMessageDB(username, recipient, hashMessage(directMessage));
+                        } else {
+                            writer.println("Invalid direct message format. Use '@username message'");
+                        }
                     } else {
-                        writer.println("Invalid direct message format. Use '@username message'");
-                    }
-                } else {
-                    // Broadcast message
-                    broadcastMessage(username + ": " + message);
-                    messageDB.addToMessageDB(username, "GLOBAL", message);
+                        // Broadcast message
+                        broadcastMessage(username + ": " + message);
+                        messageDB.addToMessageDB(username, "GLOBAL", hashMessage(message));
 
+                    }
                 }
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
             }
         }
 
@@ -220,6 +227,32 @@ public class Server {
         private void broadcastMessage(String message) {
             for (PrintWriter client : clients.values()) {
                 client.println(message);
+            }
+        }
+
+        public String hashMessage(String message) {
+            try {
+                // Create MessageDigest instance for SHA-256
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                
+                // Perform the hash computation
+                byte[] hashBytes = digest.digest(message.getBytes());
+                
+                // Convert byte array to hexadecimal string
+                StringBuilder hexString = new StringBuilder();
+                for (byte b : hashBytes) {
+                    String hex = Integer.toHexString(0xff & b);
+                    if (hex.length() == 1) {
+                        hexString.append('0');
+                    }
+                    hexString.append(hex);
+                }
+                
+                String hash = hexString.toString();
+                return hash;
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+                return null;
             }
         }
     }
