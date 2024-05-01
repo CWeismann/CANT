@@ -2,7 +2,6 @@ import javax.net.ssl.*;
 import java.io.*;
 import java.net.*;
 import java.security.*;
-import java.security.MessageDigest;
 import java.util.*;
 
 public class Server {
@@ -34,8 +33,14 @@ public class Server {
             trustManagerFactory.init(trustStore);
             
             sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+            // SSLServerSocketFactory socketFactory = sslContext.getServerSocketFactory();
+            // SSLServerSocket serverSocket = (SSLServerSocket) socketFactory.createServerSocket(PORT);
+
+            SSLParameters sslParams = sslContext.getDefaultSSLParameters();
+            sslParams.setCipherSuites(new String[]{"TLS_AES_128_GCM_SHA256"});
             SSLServerSocketFactory socketFactory = sslContext.getServerSocketFactory();
             SSLServerSocket serverSocket = (SSLServerSocket) socketFactory.createServerSocket(PORT);
+            serverSocket.setSSLParameters(sslParams);
 
             System.out.println("Server started. Waiting for clients...");
 

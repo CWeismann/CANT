@@ -127,8 +127,14 @@ public class Client {
             TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             trustManagerFactory.init(trustStore);
             sslContext.init(null, trustManagerFactory.getTrustManagers(), null);
+            // SSLSocketFactory socketFactory = sslContext.getSocketFactory();
+            // SSLSocket socket = (SSLSocket) socketFactory.createSocket(SERVER_HOST, SERVER_PORT);
+
+            SSLParameters sslParams = sslContext.getDefaultSSLParameters();
+            sslParams.setCipherSuites(new String[]{"TLS_AES_128_GCM_SHA256"});
             SSLSocketFactory socketFactory = sslContext.getSocketFactory();
             SSLSocket socket = (SSLSocket) socketFactory.createSocket(SERVER_HOST, SERVER_PORT);
+            socket.setSSLParameters(sslParams);
 
             writer = new PrintWriter(socket.getOutputStream(), true);
 
